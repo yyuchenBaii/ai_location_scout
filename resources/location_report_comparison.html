@@ -448,6 +448,14 @@
             cursor: pointer; transition: all 0.2s;
         }
         .toggle-btn.active { background: rgba(102, 252, 241, 0.15); color: var(--accent-cyan); }
+
+        /* 全局横向对比结论框 */
+        .global-conclusion-panel { position: absolute; bottom: 25px; right: 25px; width: 450px; background: rgba(15, 15, 20, 0.95); backdrop-filter: blur(10px); border: 1px solid var(--accent-cyan); border-radius: 12px; z-index: 50; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden; }
+        .gc-header { padding: 15px 20px; font-size: 14px; font-weight: 700; color: var(--accent-cyan); background: rgba(102, 252, 241, 0.1); cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid transparent; }
+        .gc-header:hover { background: rgba(102, 252, 241, 0.15); }
+        .gc-content { padding: 15px 20px 20px; font-size: 13px; line-height: 1.7; max-height: 500px; overflow-y: auto; transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s; }
+        .global-conclusion-panel.collapsed .gc-content { max-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0; border-top-color: transparent; }
+        .global-conclusion-panel.collapsed .gc-header { border-bottom-color: transparent; }
     </style>
 </head>
 
@@ -549,6 +557,17 @@
             <div class="map-style-toggle">
                 <button class="toggle-btn active" onclick="setMapStyle('amap://styles/darkblue', this)">🌑 深色科技</button>
                 <button class="toggle-btn" onclick="setMapStyle('amap://styles/normal', this)">☀️ 经典高德</button>
+            </div>
+        </div>
+
+        <!-- Global Conclusion Panel -->
+        <div class="global-conclusion-panel collapsed" id="ui-global-conclusion">
+            <div class="gc-header" onclick="document.getElementById('ui-global-conclusion').classList.toggle('collapsed')">
+                <span>📊 横向对比结论与最优推荐排序</span>
+                <span style="font-size: 11px; font-weight: normal; opacity: 0.8; color: var(--text-primary);">▼ 点击折叠/展开</span>
+            </div>
+            <div class="gc-content" id="ui-global-conclusion-content">
+                <!-- Content injected by JS or LLM directly -->
             </div>
         </div>
     </div>
@@ -707,6 +726,8 @@
                 tooltip: { shared: true }
             });
             radarPlot.render();
+
+            document.getElementById('ui-global-conclusion-content').innerHTML = '<strong>横向对比综合建议：</strong><br>在此输入各点位优劣势总结与最终投资建议排序...';
 
             buildSwitcher();
             switchLocation('C'); // Default to C
