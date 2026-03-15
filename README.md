@@ -57,6 +57,17 @@
 
 ---
 
+## 🎨 视觉级研报交付 (Visual Showcase)
+这是本插件最终在你的终端里生成的交互式暗黑大屏。不要再看干瘪枯燥的 Markdown 文本表单，感受下专业地推的视觉降维打击：
+
+*(此处原本可展示 `resources/report_template.html` 与 `resources/location_report_comparison.html` 渲染出的真实效果截图，包括雷达图、存活进度条、高德暗黑渲染地图区)*
+
+> **💡 [多点对比交互大屏示例 (真实数据演示)]**
+> ![对比研报界面演示图片预留位](https://raw.githubusercontent.com/yyuchenBaii/ai_location_scout/main/docs/showcase_compare.png) 
+> (注：如果在终端中点开，该页面可在 A/B 候选点位间丝滑切换各种竞争维度的全览)
+
+---
+
 ## 快速上手
 
 ### 🔌 方式一：终端极速对话安装 (如果你使用 OpenClaw)
