@@ -14,16 +14,16 @@
 
     <style>
         :root {
-            --bg-base: #f8fafc;
-            --panel-bg: #ffffff;
-            --panel-border: #e2e8f0;
-            --accent-cyan: #2563eb;
-            --accent-teal: #1d4ed8;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
+            --bg-base: #0a0a0f;
+            --panel-bg: rgba(18, 20, 28, 0.92);
+            --panel-border: rgba(102, 252, 241, 0.15);
+            --accent-cyan: #66fcf1;
+            --accent-teal: #45a29e;
+            --text-primary: #f0f0f0;
+            --text-secondary: #8b9ac1;
+            --success: #00e676;
+            --warning: #ffea00;
+            --danger: #ff1744;
             --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
         }
 
@@ -122,6 +122,8 @@
         /* 超大信息密度侧边栏 */
         .sidebar-panel {
             width: 500px;
+            min-width: 500px;
+            max-width: 500px;
             background: var(--panel-bg);
             backdrop-filter: blur(15px);
             border-right: 1px solid var(--panel-border);
@@ -130,7 +132,7 @@
             z-index: 10;
             box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
             height: 100%;
-            /* Ensure it spans the full workspace height */
+            overflow: hidden;
         }
 
         /* 选项卡导航 */
