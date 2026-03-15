@@ -63,7 +63,7 @@
 *(下图展示了最新版白色主题下的多维度对比研报效果，包括雷达图评估、侧边栏固定结论区及高德 3D 渲染地图)*
 
 > **💡 [深度选址研报示例 (基于高德 LBS 真实数据抓取生成)]**
-> ![杭州选址研报界面演示](https://raw.githubusercontent.com/yyuchenBaii/ai_location_scout/main/docs/showcase_white.png) 
+> ![杭州选址研报界面演示](https://raw.githubusercontent.com/yyuchenBaii/ai_location_scout/main/docs/case.png) 
 > (注：如果在**本地电脑**终端运行，点开链接即是互动大屏；如果 Agent 部署在**云端服务器**，Agent 会直接输出 HTML 源码供你复制保存到本地查看。)
 
 ---
