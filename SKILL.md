@@ -127,7 +127,7 @@ const heatData = [{ lng, lat, count: 10 }, ...];
 - ❌ 侧边栏内容全是空架子，每个 Tab 只有一两句描述。
 - ❌ 在地图区域添加暗黑/白色主题切换按钮。
 - ❌ 在地图上用 `position: absolute` 的浮动 div 覆盖地图显示结论。
-- ❌ **自行创建图例 div**：模板中 `#map-legend` 已预置在地图左上角，**MUST 只往里追加 `.legend-item`，严禁删除或在其他地方重新创建图例容器**。
+- ❌ **乱放图例位置**：模板中 `#map-legend` 已固定在地图左上角（`position: absolute; top: 20px; left: 20px`），**严禁移动该容器或在其他地方另建图例**。图例内的 `.legend-item` 内容 MUST 根据实际业态动态填写（如：居酒屋竞品/日料竞品/目标选址点），不得写死通用条目。
 - ❌ 在 HTML 代码中使用 `**文字**` Markdown 加粗语法（必须用 `<strong>` 标签）。
 
 ---
