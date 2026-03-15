@@ -89,9 +89,9 @@ description: 全场景 AI 商业商业地产咨询专家。涵盖小白选址、
    <script type="text/javascript">
        window._AMapSecurityConfig = { securityJsCode: "YOUR_AMAP_SEC_CODE", }
    </script>
-   <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=YOUR_AMAP_JSAPI_KEY&plugin=AMap.Circle,AMap.InfoWindow"></script>
+   <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=YOUR_AMAP_JSAPI_KEY&plugin=AMap.Circle,AMap.InfoWindow,AMap.HeatMap"></script>
    ```
-   *注意：必须带上 `&plugin=AMap.Circle,AMap.InfoWindow` 才能画出红海风险圈和信息弹窗。如果用户在前置对话里提供了 Key，请自动帮他们替换掉 `YOUR_AMAP_...`*
+   *注意：必须带上 `&plugin=AMap.Circle,AMap.InfoWindow,AMap.HeatMap` 才能画出高级可视化图层。如果用户在前置对话里提供了 Key，请自动帮他们替换掉 `YOUR_AMAP_...`*
    
    ⚠️ **【极其重要的血泪警告：不要张冠李戴 Key 的类型！】**
    - **前端 HTML 文件里** (JS 脚本中) 必须且只能填写用户的 **JS API Key 和安全密钥 (SecCode)**。
@@ -101,8 +101,16 @@ description: 全场景 AI 商业商业地产咨询专家。涵盖小白选址、
    - 当用户要求同时分析 **多个选址点位/商圈** 时，**绝对禁止**为你分析的每一个点位生成独立的单体 HTML 文件！
    - 你必须强制读取并使用 `resources/location_report_comparison.html` 模版。
    - 所有的点位分析数据，必须通过复制和复用该模版中的 `<button class="tab-btn">` 和 `<div class="tab-content">` 机制，被**完全整合进这一个单独的 HTML 文件中**。让用户可以在同一个页面的不同 Tab 间进行横向对比切换。
-   - 最后的投资决策区，必须给出一个明确的“横向对比结论”和“最优推荐排序”。
-5. **语言风格纪律**：
+    - 最后的投资决策区，必须给出一个明确的“横向对比结论”和“最优推荐排序”。
+5. **【数据注入】高级地图可视化图层编排（制造视觉震撼）**：
+   - 基础 HTML 模版中已经埋入了强大的渲染引擎 (`renderConcentricCircles`, `renderPOIs`, `renderHeatMap`) 并且自带了支持极客暗黑风和经典高德风的**地图主题切换器**。
+   - **你不需要手写任何复杂的 JS 渲染代码**。你的任务仅仅是依据前置分析，在最后 JS 数据区中填充对应的数组数据，制造出惊艳的数据密度：
+     - **同心辐射圈 (`circles`)**：注入 `radius` (半径), `color` (如 `#ff1744`), `title`, `desc`。建议至少画两层（核心截流致命圈 与 宏观覆盖圈）。
+     - **多态 POI (`pois`)**：注入 `loc: [经度,纬度]`, `name`, `desc` 并且必须指定 `type`（可选值只有三种：`office` 绿色写字楼锚点, `metro` 蓝色地铁流量入口, `competitor` 红色竞品死敌）。围绕靶心制造至少 3-8 个精准打点。
+     - **竞品热力点 (`heatData`)**：注入假定或真实的阵列数据如 `[ {lng: xx, lat: xx, count: 10}, ... ]` 代表附近客流密集度或竞争烈度，让前端渲出热力图。
+   - **单体报告**：修改 `<script>` 里写死预留的 `circles`, `pois`, `heatData` 变量。
+   - **多点位报告**：在每个方案的 JSON `{...}` 属性中，原样增加属性 `circles: [...]`, `pois: [...]`, `heatData: [...]`。
+6. **语言风格纪律**：
    - 必须使用专业、克制的地产咨询行业黑话（例如：截断效应、通勤漏斗、租售比红线、坪效估值）。
    - 绝不允许使用轻浮的 AI 网络用语词汇！
 

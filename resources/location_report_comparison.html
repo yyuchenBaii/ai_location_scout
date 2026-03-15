@@ -9,7 +9,7 @@
     <script type="text/javascript">
         window._AMapSecurityConfig = { securityJsCode: "YOUR_AMAP_SEC_CODE", }
     </script>
-    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=YOUR_AMAP_JSAPI_KEY&plugin=AMap.Circle,AMap.InfoWindow"></script>
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=YOUR_AMAP_JSAPI_KEY&plugin=AMap.Circle,AMap.InfoWindow,AMap.HeatMap"></script>
 
     <style>
         :root {
@@ -434,6 +434,20 @@
             cursor: pointer;
             text-decoration: none;
         }
+
+        /* 地图风格切换器 */
+        .map-style-toggle {
+            position: absolute; top: 20px; left: 20px;
+            background: rgba(15, 15, 20, 0.9); backdrop-filter: blur(10px);
+            border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 5px;
+            display: flex; gap: 5px; z-index: 50; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .toggle-btn {
+            background: transparent; border: none; color: var(--text-secondary);
+            padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .toggle-btn.active { background: rgba(102, 252, 241, 0.15); color: var(--accent-cyan); }
     </style>
 </head>
 
@@ -532,6 +546,10 @@
 
         <div class="map-wrapper">
             <div id="amap-container"></div>
+            <div class="map-style-toggle">
+                <button class="toggle-btn active" onclick="setMapStyle('amap://styles/darkblue', this)">🌑 深色科技</button>
+                <button class="toggle-btn" onclick="setMapStyle('amap://styles/normal', this)">☀️ 经典高德</button>
+            </div>
         </div>
     </div>
 
@@ -609,6 +627,66 @@
         let map, radarPlot, markers = [];
 
         // ----------------------------------------
+        // 核心可视化渲染引擎 (Render Engines)
+        // ----------------------------------------
+        function setMapStyle(style, btn) {
+            if(map) map.setMapStyle(style);
+            if(btn) {
+                btn.parentElement.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+        }
+
+        function showInfoWin(mapInstance, data, position) {
+            const infoWindow = new AMap.InfoWindow({
+                isCustom: true,
+                content: `<div class="custom-info-window"><a href="javascript:void(0)" class="amap-info-close" onclick="map.clearInfoWindow()">✖</a><h4>${data.title}</h4><p>${data.desc}</p></div>`,
+                offset: new AMap.Pixel(0, -20)
+            });
+            infoWindow.open(mapInstance, position);
+        }
+
+        function renderConcentricCircles(mapInstance, center, circlesData) {
+            circlesData.forEach(circle => {
+                const zone = new AMap.Circle({
+                    center: center, radius: circle.radius,
+                    strokeColor: circle.color, strokeOpacity: 0.8, strokeWeight: 2,
+                    fillColor: circle.color, fillOpacity: circle.fillOpacity, zIndex: 50,
+                    cursor: 'pointer', extData: { title: circle.title, desc: circle.desc }
+                });
+                mapInstance.add(zone);
+                zone.on('click', function (e) { showInfoWin(mapInstance, e.target.getExtData(), e.lnglat); });
+            });
+        }
+
+        function renderPOIs(mapInstance, poiDataList) {
+            poiDataList.forEach(pt => {
+                let badgeHtml = '';
+                if(pt.type === 'office') badgeHtml = `<div style="padding: 2px 6px; background: rgba(0,230,118,0.2); border: 1px solid var(--success); color: var(--success); font-family: 'JetBrains Mono'; font-size: 10px; font-weight: bold; border-radius: 4px; backdrop-filter: blur(4px); cursor: pointer;">OFFICE</div>`;
+                else if(pt.type === 'metro') badgeHtml = `<div style="padding: 2px 6px; background: rgba(102,252,241,0.2); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: 'JetBrains Mono'; font-size: 10px; font-weight: bold; border-radius: 4px; backdrop-filter: blur(4px); cursor: pointer;">METRO</div>`;
+                else badgeHtml = `<div style="width: 12px; height: 12px; background: var(--danger); border: 2px solid white; border-radius: 50%; box-shadow: 0 0 10px var(--danger); cursor: pointer;"></div>`;
+
+                const marker = new AMap.Marker({
+                    position: pt.loc, content: badgeHtml, anchor: 'center', zIndex: 80,
+                    extData: { title: pt.name, desc: pt.desc }
+                });
+                marker.setMap(mapInstance);
+                marker.on('click', function (e) { showInfoWin(mapInstance, e.target.getExtData(), marker.getPosition()); });
+            });
+        }
+
+        function renderHeatMap(mapInstance, heatDataPoints) {
+            if(!heatDataPoints || heatDataPoints.length === 0) return;
+            mapInstance.plugin(["AMap.HeatMap"], function () {
+                const heatmap = new AMap.HeatMap(mapInstance, {
+                    radius: 25, opacity: [0, 0.8],
+                    gradient: { 0.5: 'blue', 0.65: 'rgb(117,211,248)', 0.7: 'rgb(0, 255, 0)', 0.9: '#ffea00', 1.0: 'red' }
+                });
+                heatmap.setDataSet({ data: heatDataPoints, max: 100 });
+            });
+        }
+
+        // ----------------------------------------
         // Init Map & Chart
         // ----------------------------------------
         function initMap() {
@@ -659,14 +737,24 @@
             // Fly Map
             map.setCenter(data.latlng);
 
-            // Clear & Draw Markers (Simplified for demo, just a target pin)
+            // Clear & Draw Markers
             map.clearMap();
+            
+            // 绘制中心靶心点
             const targetMarker = new AMap.Marker({
                 position: data.latlng,
                 content: `<div style="width: 30px; height: 30px; border: 3px solid ${data.color}; border-radius: 50%; box-shadow: 0 0 25px ${data.color}; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center;"><div style="width: 8px; height: 8px; background: white; border-radius: 50%;"></div></div>`,
-                anchor: 'center'
+                anchor: 'center',
+                zIndex: 100,
+                extData: { title: `拟选店址: ${data.name}`, desc: `综合推荐指数: ${data.score} (${data.grade})` }
             });
             map.add(targetMarker);
+            targetMarker.on('click', function(e) { showInfoWin(map, e.target.getExtData(), e.target.getPosition()); });
+
+            // 智能渲染当前商圈的地理扩展层 (如果有预置数据)
+            if(data.circles) renderConcentricCircles(map, data.latlng, data.circles);
+            if(data.pois) renderPOIs(map, data.pois);
+            if(data.heatData) renderHeatMap(map, data.heatData);
 
             // Update Flyout styling
             const flyout = document.getElementById('ui-flyout');
