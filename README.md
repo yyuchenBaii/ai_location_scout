@@ -32,7 +32,7 @@
 **AI Location Scout 把选址变成了一场专业的沉浸式数字推演：**
 
 ```
-帮我安装这款牛逼的 AI 开店选址专家，仓库地址是：https://github.com/yyuchenBaii/ai_location_scout，装好后告诉我。
+帮我安装从Github上安装这个选址 Skill，仓库地址是：https://github.com/yyuchenBaii/ai_location_scout，装好后告诉我。
 ```
 
 把这句话发给你的 Agent（比如 OpenClaw），几秒钟后，它直接变身为具有 10 年经验的商业地产合伙人。
