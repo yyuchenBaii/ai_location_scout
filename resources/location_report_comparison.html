@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 开店选址深度研报 - 杭州多方案对比</title>
+    <script src="https://unpkg.com/@antv/g2plot@latest/dist/g2plot.min.js"></script>
+    <script type="text/javascript">
+        window._AMapSecurityConfig = { securityJsCode: "YOUR_AMAP_SEC_CODE", }
+    </script>
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=YOUR_AMAP_JSAPI_KEY"></script>
+    
+    <style>
+        :root {
+            --bg-base: #0a0a0f;
+            --panel-bg: rgba(18, 20, 28, 0.85);
+            --panel-border: rgba(102, 252, 241, 0.15);
+            --accent-cyan: #66fcf1;
+            --text-primary: #f0f0f0;
+            --text-secondary: #8b9ac1;
+            --success: #00e676;
+            --warning: #ffea00;
+            --danger: #ff1744;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+        body { background: var(--bg-base); color: var(--text-primary); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        
+        /* Header */
+        header {
+            height: 60px; padding: 0 30px; background: rgba(10, 10, 15, 0.95); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--panel-border); display: flex; justify-content: space-between; align-items: center; z-index: 100;
+        }
+        .report-title { font-size: 18px; font-weight: 700; letter-spacing: 1px; display: flex; align-items: center; gap: 12px;}
+        .report-title span.tag { background: rgba(102, 252, 241, 0.1); color: var(--accent-cyan); padding: 4px 10px; border-radius: 4px; font-size: 12px; border: 1px solid var(--accent-cyan); }
+        .data-source { font-size: 11px; padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 4px; color: var(--text-secondary); cursor: help;}
+        
+        /* Top Navigation - Multi-Location Switcher */
+        .location-switcher {
+            display: flex; gap: 10px; align-items: center; margin-right: 20px;
+        }
+        .loc-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
+            color: var(--text-secondary); padding: 8px 16px; border-radius: 20px;
+            font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        .loc-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+        .loc-btn.active {
+            background: var(--accent-cyan); color: #000; border-color: var(--accent-cyan);
+            box-shadow: 0 0 15px rgba(102, 252, 241, 0.4);
+        }
+        .loc-btn[data-recommend="true"]::after {
+            content: "🏆 强推"; font-size: 10px; margin-left: 6px; background: #000; color: var(--accent-cyan);
+            padding: 2px 6px; border-radius: 10px;
+        }
+
+        .workspace { display: flex; flex: 1; position: relative; height: calc(100vh - 60px); overflow: hidden;}
+        
+        .sidebar-panel {
+            width: 500px; background: var(--panel-bg); backdrop-filter: blur(15px);
+            border-right: 1px solid var(--panel-border); display: flex; flex-direction: column;
+            z-index: 10; box-shadow: 10px 0 30px rgba(0,0,0,0.5); height: 100%;
+        }
+
+        .tabs-header { display: flex; border-bottom: 1px solid var(--panel-border); flex-shrink: 0; }
+        .tab-btn { flex: 1; padding: 15px 0; background: transparent; border: none; color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent;}
+        .tab-btn.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); background: rgba(102, 252, 241, 0.05); }
+
+        .tab-content { flex: 1; overflow-y: auto; padding: 25px; padding-bottom: 60px; display: none; }
+        .tab-content.active { display: block; }
+        .tab-content::-webkit-scrollbar { width: 4px; }
+        .tab-content::-webkit-scrollbar-thumb { background: rgba(102,252,241,0.2); border-radius: 2px; }
+
+        .map-wrapper { flex: 1; position: relative; }
+        #amap-container { width: 100%; height: 100%; background: #000; }
+        
+        .final-decision-flyout {
+            position: absolute; top: 20px; right: 20px; width: 340px; background: rgba(15, 15, 20, 0.9); backdrop-filter: blur(10px);
+            border: 1px solid var(--accent-cyan); border-radius: 12px; padding: 20px; z-index: 20; transition: border-color 0.3s;
+        }
+        .flyout-header { font-size: 12px; color: var(--text-secondary); letter-spacing: 1px; margin-bottom: 10px; text-transform: uppercase; }
+        .score-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 15px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 15px;}
+        .big-score { font-size: 48px; font-weight: 800; color: var(--text-primary); font-family: var(--font-mono); line-height: 1;}
+        .grade-badge { background: var(--accent-cyan); color: #0a0a0f; padding: 4px 12px; border-radius: 4px; font-weight: 800; font-size: 18px; }
+        .grade-badge.danger { background: var(--danger); }
+        .grade-badge.warn { background: var(--warning); }
+        .grade-badge.safe { background: var(--success); }
+        .kill-reason { font-size: 13px; line-height: 1.6; color: rgba(255, 255, 255, 0.9); }
+        .kill-reason .highlight { color: var(--accent-cyan); font-weight: bold; }
+
+        .section-cap { font-size: 14px; font-weight: 700; color: var(--text-primary); margin: 30px 0 15px; display: flex; align-items: center; gap: 8px; }
+        .section-cap::before { content: '■'; color: var(--accent-cyan); font-size: 10px; }
+
+        .intent-box { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; font-size: 13px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 15px;}
+        .radar-container { width: 100%; height: 260px; margin: 10px 0; }
+        
+        /* Metric Cards */
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .metric-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; }
+        .m-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px;}
+        .m-val { font-size: 20px; font-weight: 700; color: var(--text-primary); font-family: var(--font-mono); }
+        .m-sub { font-size: 11px; color: var(--text-secondary); margin-top: 5px; opacity: 0.8; }
+
+        /* Progress Bars */
+        .progress-row { margin-bottom: 12px; }
+        .p-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; color: var(--text-secondary); }
+        .p-track { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+        .p-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+        .p-fill.bg-danger { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+        .p-fill.bg-warn { background: var(--warning); box-shadow: 0 0 10px var(--warning);}
+        .p-fill.bg-safe { background: var(--success); box-shadow: 0 0 10px var(--success);}
+
+        /* Insight Blocks */
+        .insight-block { padding: 12px 15px; background: rgba(0,0,0,0.2); border-left: 3px solid var(--accent-cyan); border-radius: 0 8px 8px 0; margin-bottom: 12px; font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.85); }
+        .ib-title { font-weight: 700; margin-bottom: 5px; color: var(--text-primary); }
+
+        .custom-info-window { background: rgba(15, 15, 20, 0.95); border: 1px solid var(--accent-cyan); padding: 15px; border-radius: 8px; color: white; min-width: 200px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); backdrop-filter: blur(5px);}
+        .custom-info-window h4 { margin: 0 0 10px 0; color: var(--accent-cyan); font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;}
+        .custom-info-window p { margin: 5px 0; font-size: 12px; color: #ccc; }
+        .amap-info-close { color: white; top: 10px; right: 10px; position: absolute; cursor: pointer; text-decoration: none;}
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="report-title">
+            多商圈深度对比研报 
+            <span class="tag">AI 高保真推演</span>
+            <div style="font-size: 12px; color: var(--text-secondary); font-weight: normal;">| 80万预算·空间溢价咖啡</div>
+        </div>
+        <div style="display: flex; align-items: center;">
+            <div class="location-switcher" id="loc-switcher">
+                <!-- Location buttons injected by JS -->
+            </div>
+            <div title="数据核心来源基于高德地图开放平台 LBS 服务，客流画像由大模型测算生成" class="data-source">
+                数据源声明: 高德 LBS 洞察
+            </div>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <aside class="sidebar-panel">
+            <div class="tabs-header">
+                <button class="tab-btn active" onclick="switchTab('tab-macro')">宏观&人群画像</button>
+                <button class="tab-btn" onclick="switchTab('tab-compete')">竞争&红海排雷</button>
+                <button class="tab-btn" onclick="switchTab('tab-finance')">成本测算</button>
+            </div>
+
+            <!-- Tab 1 -->
+            <div id="tab-macro" class="tab-content active">
+                <div class="intent-box" id="ui-intent"></div>
+                <div class="section-cap">立体竞争维度 (Radar)</div>
+                <div id="radar-chart" class="radar-container"></div>
+                <div class="section-cap">客群质量结构</div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="m-label">日均客流触达</div>
+                        <div class="m-val" id="ui-metric1-val"></div>
+                        <div class="m-sub" id="ui-metric1-sub"></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="m-label">溢价转化率</div>
+                        <div class="m-val" id="ui-metric2-val"></div>
+                        <div class="m-sub" id="ui-metric2-sub"></div>
+                    </div>
+                </div>
+                <div class="insight-block" style="margin-top: 15px;">
+                    <div class="ib-title">人效归因分析</div>
+                    <div id="ui-insight1"></div>
+                </div>
+            </div>
+
+            <!-- Tab 2 -->
+            <div id="tab-compete" class="tab-content">
+                <div class="section-cap">存量竞争容量扫描 (半径 2km)</div>
+                <div id="ui-progress-bars"></div>
+                <div class="section-cap">微观落位避险</div>
+                <div class="insight-block">
+                    <div class="ib-title">致命风险预警</div>
+                    <div id="ui-insight2"></div>
+                </div>
+            </div>
+
+            <!-- Tab 3 -->
+            <div id="tab-finance" class="tab-content">
+                <div class="section-cap">财务预测模型 (80万总包)</div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="m-label">预测保底租金</div>
+                        <div class="m-val" id="ui-finance1"></div>
+                        <div class="m-sub">万元/月</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="m-label">死亡平衡点</div>
+                        <div class="m-val" id="ui-finance2"></div>
+                        <div class="m-sub">日销杯数</div>
+                    </div>
+                </div>
+                <div class="insight-block" style="border-left-color: var(--warning); margin-top: 15px;">
+                    <div class="ib-title">投资回报率管控 (ROI)</div>
+                    <div id="ui-insight3"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Final Decision Flyout -->
+        <div class="final-decision-flyout" id="ui-flyout">
+            <div class="flyout-header">投资决策建议指令</div>
+            <div class="score-row">
+                <div class="big-score" id="ui-score"></div>
+                <div class="grade-badge" id="ui-grade"></div>
+            </div>
+            <div class="kill-reason" id="ui-reason"></div>
+        </div>
+
+        <div class="map-wrapper"><div id="amap-container"></div></div>
+    </div>
+
+    <script>
+        // ----------------------------------------
+        // Data Payloads for Multi-Location
+        // ----------------------------------------
+        const locationData = {
+            'A': {
+                id: 'A', name: '仓前板块 (EFC周边)', recommend: false, latlng: [119.996, 30.281],
+                score: 42, grade: 'C- 谨慎入场', gradeClass: 'danger', color: 'var(--danger)',
+                radar: [
+                    { item: '工作日客流', score: 95 }, { item: '周末爆发客流', score: 30 },
+                    { item: '客群隐形身价', score: 80 }, { item: '经营成本友好度', score: 20 },
+                    { item: '竞争蓝海度', score: 10 }, { item: '出片传播潜能', score: 40 }
+                ],
+                intent: '核心 <strong>IT 互联网心脏地带</strong>，午休刚需极高，但对空间溢价极度不敏锐。',
+                metric1: '55,000+', m1sub: '海量换乘与通勤人潮',
+                metric2: '<span style="color:var(--danger)">1.2%</span>', m2sub: '拿着就走，毫无驻留时间',
+                insight1: '人群画像极度硬核，白领核心诉求是“续命提取液”而非“环境享受”。花80万在这里做硬装，相当于锦衣夜行。',
+                progress: [
+                    { label: '低价走量咖啡密度', pct: 95, color: 'bg-danger' },
+                    { label: '中高档独立品牌存活', pct: 15, color: 'bg-warn' }
+                ],
+                insight2: '<strong>死亡红海警戒</strong>：周边的瑞幸与街区下沉品牌已填满每一个写字大堂底商。高昂商发转让费极易抽干现金流。',
+                finance1: '<span style="color:var(--danger)">4.0 - 6.5</span>', finance2: '<span style="color:var(--danger)">220+</span>',
+                insight3: '租约成本将彻底击穿 80 万总包的防线，如果勉强拿下背街巷尾的烂铺，则必无日漫量。属于绝对的高危资产。',
+                reason: '<span class="highlight">[非入场理由阐述]：</span>租金杀手+红海绞肉机。80万不够交半年房租和天价转让费。这里的赛道只属于资本连锁玩家。'
+            },
+            'B': {
+                id: 'B', name: '亲橙里 (阿里西溪内核)', recommend: false, latlng: [120.024, 30.266],
+                score: 55, grade: 'B 强竞争区', gradeClass: 'warn', color: 'var(--warning)',
+                radar: [
+                    { item: '工作日客流', score: 90 }, { item: '周末爆发客流', score: 75 },
+                    { item: '客群隐形身价', score: 95 }, { item: '经营成本友好度', score: 30 },
+                    { item: '竞争蓝海度', score: 25 }, { item: '出片传播潜能', score: 60 }
+                ],
+                intent: '阿里生态重度辐射区，<strong>商谈属性爆表</strong>，客群支付能力全杭州顶流。',
+                metric1: '38,000+', m1sub: '以阿里大军/供应商为主',
+                metric2: '<span style="color:var(--warning)">2.8%</span>', m2sub: '商业洽谈转化尚可',
+                insight1: '虽然客人有钱且需要谈事，但大厂内部自带极其廉价完善的咖啡供给，外部铺位若无降维级产品力极难破局。',
+                progress: [
+                    { label: '大型星巴克/MStand包围', pct: 85, color: 'bg-danger' },
+                    { label: '缝隙蓝海机会', pct: 35, color: 'bg-warn' }
+                ],
+                insight2: '<strong>截留效应剧烈</strong>：亲橙里内部铺位极其稀缺且租金惊人，外围底商面临商场巨头的全方位流量抽干。',
+                finance1: '<span style="color:var(--warning)">3.5 - 4.5</span>', finance2: '<span style="color:var(--warning)">160+</span>',
+                insight3: '由于极度依赖工作日商用流量，周末面临周边土著的流失。盈亏平衡点偏高，抗风险能力差。',
+                reason: '<span class="highlight">[非入场理由阐述]：</span>大厂的羊毛不好薅！内部极高配的饮食设施已干掉了一大批周边餐饮，租金泡沫极大。'
+            },
+            'C': {
+                id: 'C', name: '良渚文化村', recommend: true, latlng: [119.967, 30.380],
+                score: 88, grade: 'A- 强势买入', gradeClass: 'safe', color: 'var(--success)',
+                radar: [
+                    { item: '工作日客流', score: 40 }, { item: '周末爆发客流', score: 95 },
+                    { item: '客群隐形身价', score: 88 }, { item: '经营成本友好度', score: 85 },
+                    { item: '竞争蓝海度', score: 70 }, { item: '出片传播潜能', score: 90 }
+                ],
+                intent: '80万总包预算下，强寻具备消费宽容度的<strong>中高端客群与微度假锚点</strong>。',
+                metric1: '22,000+', m1sub: '区域微循环与周末爆发客流',
+                metric2: '<span style="color:var(--success)">3.8%</span>', m2sub: '高情绪价值买单意愿',
+                insight1: '呈现平滑的高黏性社区生态与周末爆发式的艺文客流。这里的受众不仅具备承载单杯 35+ 的财务实力，且愿意为出片率支付空间溢价。',
+                progress: [
+                    { label: '大型重模式精品空间', pct: 50, color: 'bg-warn' },
+                    { label: '独立主理人蓝海缺口', pct: 75, color: 'bg-safe' }
+                ],
+                insight2: '<strong>回避内侧死角商展</strong>：部分村民广场外围非市政底商虽便宜，但非动线必经地，切勿为了省那几千块误入“实体百慕大”。',
+                finance1: '<span style="color:var(--success)">1.8 - 2.5</span>', finance2: '<span style="color:var(--success)">80+</span>',
+                insight3: '租约成本被成功压制在了极度健康的15% 乃至更低。80万全砸在调性与设备上，半年回血不是梦。',
+                reason: '<span class="highlight">[核心破局理由阐述]：</span>极其正确的战略转移。用 80 万在此形成“降维打击”——换取极低的租售比与高溢价池！'
+            }
+        };
+
+        let currentLoc = 'C';
+        let map, radarPlot, markers = [];
+
+        // ----------------------------------------
+        // Init Map & Chart
+        // ----------------------------------------
+        function initMap() {
+            map = new AMap.Map('amap-container', {
+                zoom: 15, center: locationData['C'].latlng, mapStyle: 'amap://styles/darkblue', viewMode: '3D', pitch: 45
+            });
+
+            radarPlot = new G2Plot.Radar('radar-chart', {
+                data: locationData['C'].radar, xField: 'item', yField: 'score', meta: { score: { min: 0, max: 100 } },
+                autoFit: true, theme: 'dark',
+                area: { style: { fill: locationData['C'].color, fillOpacity: 0.15 } },
+                line: { style: { stroke: locationData['C'].color, lineWidth: 2 } },
+                point: { size: 3, shape: 'circle' },
+                xAxis: { line: null, tickLine: null, label: { style: { fill: '#8b9ac1', fontSize: 11 } } },
+                yAxis: { grid: { line: { type: 'circle', style: { stroke: 'rgba(255,255,255,0.08)' }}}},
+                tooltip: { shared: true }
+            });
+            radarPlot.render();
+
+            buildSwitcher();
+            switchLocation('C'); // Default to C
+        }
+
+        // ----------------------------------------
+        // UI Render Logic
+        // ----------------------------------------
+        function buildSwitcher() {
+            const container = document.getElementById('loc-switcher');
+            ['A', 'B', 'C'].forEach(key => {
+                const btn = document.createElement('button');
+                btn.className = 'loc-btn';
+                btn.id = `btn-loc-${key}`;
+                btn.innerHTML = `${locationData[key].name}`;
+                if (locationData[key].recommend) btn.setAttribute('data-recommend', "true");
+                btn.onclick = () => switchLocation(key);
+                container.appendChild(btn);
+            });
+        }
+
+        function switchLocation(key) {
+            currentLoc = key;
+            const data = locationData[key];
+
+            // Update Buttons
+            document.querySelectorAll('.loc-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-loc-${key}`).classList.add('active');
+
+            // Fly Map
+            map.setCenter(data.latlng);
+            
+            // Clear & Draw Markers (Simplified for demo, just a target pin)
+            map.clearMap();
+            const targetMarker = new AMap.Marker({
+                position: data.latlng,
+                content: `<div style="width: 30px; height: 30px; border: 3px solid ${data.color}; border-radius: 50%; box-shadow: 0 0 25px ${data.color}; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center;"><div style="width: 8px; height: 8px; background: white; border-radius: 50%;"></div></div>`,
+                anchor: 'center'
+            });
+            map.add(targetMarker);
+
+            // Update Flyout styling
+            const flyout = document.getElementById('ui-flyout');
+            flyout.style.borderColor = data.color;
+            document.getElementById('ui-score').innerText = data.score;
+            document.getElementById('ui-grade').className = `grade-badge ${data.gradeClass}`;
+            document.getElementById('ui-grade').innerText = data.grade;
+            document.getElementById('ui-reason').innerHTML = data.reason;
+            
+            // Re-render Radar
+            radarPlot.changeData(data.radar);
+            radarPlot.update({
+                area: { style: { fill: data.color, fillOpacity: 0.15 } },
+                line: { style: { stroke: data.color, lineWidth: 2 } }
+            });
+
+            // Update Texts
+            document.getElementById('ui-intent').innerHTML = data.intent;
+            document.getElementById('ui-metric1-val').innerHTML = data.metric1;
+            document.getElementById('ui-metric1-sub').innerHTML = data.m1sub;
+            document.getElementById('ui-metric2-val').innerHTML = data.metric2;
+            document.getElementById('ui-metric2-sub').innerHTML = data.m2sub;
+            document.getElementById('ui-insight1').innerHTML = data.insight1;
+            
+            document.getElementById('ui-insight2').innerHTML = data.insight2;
+            let progressHtml = '';
+            data.progress.forEach(p => {
+                progressHtml += `
+                <div class="progress-row">
+                    <div class="p-header"><span>${p.label}</span> <span>${p.pct}%</span></div>
+                    <div class="p-track"><div class="p-fill ${p.color}" style="width: ${p.pct}%;"></div></div>
+                </div>`;
+            });
+            document.getElementById('ui-progress-bars').innerHTML = progressHtml;
+
+            document.getElementById('ui-finance1').innerHTML = data.finance1;
+            document.getElementById('ui-finance2').innerHTML = data.finance2;
+            document.getElementById('ui-insight3').innerHTML = data.insight3;
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // Init after JS loads
+        window.onload = () => {
+             // To prevent map errors if AMap hasn't fully loaded, added a slight delay
+             setTimeout(initMap, 300);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 开店选址深度研报</title>
+    <!-- G2Plot for Radar and Data Charts -->
+    <script src="https://unpkg.com/@antv/g2plot@latest/dist/g2plot.min.js"></script>
+    <script type="text/javascript">
+        window._AMapSecurityConfig = { securityJsCode: "YOUR_AMAP_SEC_CODE", }
+    </script>
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=YOUR_AMAP_JSAPI_KEY"></script>
+    
+    <style>
+        :root {
+            --bg-base: #0a0a0f;
+            --panel-bg: rgba(18, 20, 28, 0.85);
+            --panel-border: rgba(102, 252, 241, 0.15);
+            --accent-cyan: #66fcf1;
+            --accent-teal: #45a29e;
+            --text-primary: #f0f0f0;
+            --text-secondary: #8b9ac1;
+            --success: #00e676;
+            --warning: #ffea00;
+            --danger: #ff1744;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+        
+        body { 
+            background: var(--bg-base); color: var(--text-primary);
+            height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+        }
+
+        /* 顶部导航头 */
+        header {
+            height: 60px; padding: 0 30px; 
+            background: rgba(10, 10, 15, 0.95); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--panel-border);
+            display: flex; justify-content: space-between; align-items: center; z-index: 100;
+        }
+        .report-title { font-size: 18px; font-weight: 700; letter-spacing: 1px; display: flex; align-items: center; gap: 12px;}
+        .report-title span.tag { background: rgba(102, 252, 241, 0.1); color: var(--accent-cyan); padding: 4px 10px; border-radius: 4px; font-size: 12px; border: 1px solid var(--accent-cyan); }
+        .header-meta { font-family: var(--font-mono); font-size: 13px; color: var(--text-secondary); display: flex; gap: 20px; align-items: center;}
+        .meta-item { display: flex; align-items: center; gap: 5px; }
+        .meta-val { color: var(--accent-cyan); }
+        .data-source { font-size: 11px; padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 4px; color: var(--text-secondary); cursor: help;}
+        .data-source:hover { border-color: var(--accent-cyan); color: var(--text-primary); }
+
+        /* 主工作区布局 */
+        .workspace { display: flex; flex: 1; position: relative; height: calc(100vh - 60px); overflow: hidden;}
+        
+        /* 超大信息密度侧边栏 */
+        .sidebar-panel {
+            width: 500px; background: var(--panel-bg); backdrop-filter: blur(15px);
+            border-right: 1px solid var(--panel-border); display: flex; flex-direction: column;
+            z-index: 10; box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+            height: 100%; /* Ensure it spans the full workspace height */
+        }
+
+        /* 选项卡导航 */
+        .tabs-header { display: flex; border-bottom: 1px solid var(--panel-border); flex-shrink: 0; }
+        .tab-btn { 
+            flex: 1; padding: 15px 0; background: transparent; border: none; color: var(--text-secondary);
+            font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-btn.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); background: rgba(102, 252, 241, 0.05); }
+        .tab-btn:hover:not(.active) { color: var(--text-primary); background: rgba(255,255,255,0.02); }
+
+        /* 选项卡内容区 */
+        .tab-content { flex: 1; overflow-y: auto; padding: 25px; padding-bottom: 60px; display: none; }
+        .tab-content.active { display: block; }
+        .tab-content::-webkit-scrollbar { width: 4px; }
+        .tab-content::-webkit-scrollbar-thumb { background: rgba(102,252,241,0.2); border-radius: 2px; }
+
+        /* 右侧沉浸式地图 */
+        .map-wrapper { flex: 1; position: relative; }
+        #amap-container { width: 100%; height: 100%; background: #000; }
+        
+        /* 悬浮终极打分卡 (右上角) */
+        .final-decision-flyout {
+            position: absolute; top: 20px; right: 20px; width: 320px;
+            background: rgba(15, 15, 20, 0.9); backdrop-filter: blur(10px);
+            border: 1px solid var(--danger); border-radius: 12px; padding: 20px;
+            box-shadow: 0 10px 30px rgba(255, 23, 68, 0.15); z-index: 20;
+        }
+        .flyout-header { font-size: 12px; color: var(--text-secondary); letter-spacing: 1px; margin-bottom: 10px; text-transform: uppercase; }
+        .score-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 15px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 15px;}
+        .big-score { font-size: 48px; font-weight: 800; color: var(--text-primary); font-family: var(--font-mono); line-height: 1;}
+        .grade-badge { background: var(--danger); color: white; padding: 4px 12px; border-radius: 4px; font-weight: 800; font-size: 18px; }
+        .kill-reason { font-size: 13px; line-height: 1.6; color: rgba(255, 255, 255, 0.9); }
+        .kill-reason strong { color: var(--danger); }
+
+        /* ================= 内容组件库 ================= */
+        
+        .section-cap { font-size: 14px; font-weight: 700; color: var(--text-primary); margin: 30px 0 15px; display: flex; align-items: center; gap: 8px; }
+        .section-cap::before { content: '■'; color: var(--accent-cyan); font-size: 10px; }
+
+        /* 模型画像描述 */
+        .intent-box { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; font-size: 13px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 15px;}
+        .intent-box span.hi { color: var(--accent-cyan); font-weight: 600; }
+
+        /* 六边形雷达图容器 */
+        .radar-container { width: 100%; height: 260px; margin: 10px 0; }
+
+        /* 数据碎排指标卡 (2x2 Grid) */
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .metric-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; }
+        .m-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;}
+        .m-val { font-size: 20px; font-weight: 700; color: var(--text-primary); font-family: var(--font-mono); }
+        .m-val.red { color: var(--danger); }
+        .m-val.green { color: var(--success); }
+        .m-sub { font-size: 11px; color: var(--text-secondary); margin-top: 5px; opacity: 0.8; }
+
+        /* 进度条型指标 */
+        .progress-row { margin-bottom: 12px; }
+        .p-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; color: var(--text-secondary); }
+        .p-track { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+        .p-fill { height: 100%; border-radius: 3px; }
+        .p-fill.bg-danger { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+        .p-fill.bg-warn { background: var(--warning); box-shadow: 0 0 10px var(--warning);}
+        .p-fill.bg-safe { background: var(--success); box-shadow: 0 0 10px var(--success);}
+
+        /* 深度分析列表项 */
+        .insight-block { padding: 12px 15px; background: rgba(0,0,0,0.2); border-left: 3px solid var(--accent-cyan); border-radius: 0 8px 8px 0; margin-bottom: 12px; font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.85); transition: background 0.2s; }
+        .insight-block:hover { background: rgba(102, 252, 241, 0.05); }
+        .insight-block.risk { border-left-color: var(--danger); }
+        .insight-block.money { border-left-color: var(--warning); }
+        .ib-title { font-weight: 700; margin-bottom: 5px; color: var(--text-primary); }
+
+        /* 微观落位法则 Tip框 */
+        .tip-box { background: rgba(255, 234, 0, 0.05); border: 1px solid rgba(255, 234, 0, 0.2); border-radius: 8px; padding: 15px; display: flex; gap: 15px; align-items: flex-start; margin-top: 20px;}
+        .tip-icon { font-size: 20px; }
+        .tip-content { font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.9); }
+
+        /* 地图弹窗 InfoWindow 样式 */
+        .custom-info-window { background: rgba(15, 15, 20, 0.95); border: 1px solid var(--accent-cyan); padding: 15px; border-radius: 8px; color: white; min-width: 200px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); backdrop-filter: blur(5px);}
+        .custom-info-window h4 { margin: 0 0 10px 0; color: var(--accent-cyan); font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;}
+        .custom-info-window p { margin: 5px 0; font-size: 12px; color: #ccc; }
+        .amap-info-close { color: white; top: 10px; right: 10px; position: absolute; cursor: pointer; text-decoration: none;}
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="report-title">智能开店选址深度研报 <span class="tag">AI 高保真推演</span></div>
+        <div class="header-meta">
+            <div title="数据核心来源基于高德地图开放平台 LBS 服务，客流画像由大模型测算生成" class="data-source">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                数据源声明: 高德 LBS 洞察 / AI 辅助建模
+            </div>
+            <div class="meta-item">📍 定位: <span class="meta-val">上海·静安寺周边 1.5km</span></div>
+            <div class="meta-item">🎯 业态: <span class="meta-val">高阶社区精品咖啡店</span></div>
+            <div class="meta-item">⏱ 状态: <span style="color:var(--success)">推演完成 (10/10 维度)</span></div>
+        </div>
+    </header>
+
+    <div class="workspace">
+        
+        <!-- 左侧高密度折叠面板 -->
+        <aside class="sidebar-panel">
+            <div class="tabs-header">
+                <button class="tab-btn active" onclick="switchTab('tab-macro')">宏观&人群画像</button>
+                <button class="tab-btn" onclick="switchTab('tab-compete')">竞争&红海排雷</button>
+                <button class="tab-btn" onclick="switchTab('tab-finance')">成本与营收测算</button>
+            </div>
+
+            <!-- Tab 1: 宏观分析与客流画像 -->
+            <div id="tab-macro" class="tab-content active">
+                <div class="intent-box">
+                    👤 <strong>商业意图建模：</strong> 试图在租金极其昂贵的静安核心区，依靠 <span class="hi">高净值白领通勤流</span> 支撑单店盈利，主打 <span class="hi">快取+极简美学</span> 避开大店的空间内卷。
+                </div>
+
+                <div class="section-cap">① 商圈多维立体评估 (Radar)</div>
+                <div id="radar-chart" class="radar-container"></div>
+
+                <div class="section-cap">② 客流动线与质量拆解</div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="m-label">日均绝对客流量</div>
+                        <div class="m-val">125,000+</div>
+                        <div class="m-sub">市级顶流商圈 (TOP 3%)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="m-label">咖啡业转化漏斗预估</div>
+                        <div class="m-val green">1.8%</div>
+                        <div class="m-sub">人群匹配度极高</div>
+                    </div>
+                </div>
+                
+                <div class="insight-block" style="margin-top: 15px;">
+                    <div class="ib-title">客流质量结构分析</div>
+                    表面上具备庞大客流基数，但<strong>客群结构呈现显著双极化特征</strong>。约 60% 为周边商务楼宇通勤客（驻留时间短、购买频次高），另 40% 为核心商圈目的性游逛客（价格敏感度低，重体验）。项目需明确核心服务主体，避免定位模棱两可。
+                </div>
+            </div>
+
+            <!-- Tab 2: 竞争排雷与黑天鹅风险 -->
+            <div id="tab-compete" class="tab-content">
+                <div class="section-cap">③ 竞争环境扫描</div>
+                <div class="progress-row">
+                    <div class="p-header"><span>1km 内同品类绝对数量 (47家)</span> <span>深度红海预警 (95%)</span></div>
+                    <div class="p-track"><div class="p-fill bg-danger" style="width: 95%;"></div></div>
+                </div>
+                <div class="progress-row">
+                    <div class="p-header"><span>核心展示面抢占率 (转角/主干道)</span> <span>极度饱和 (88%)</span></div>
+                    <div class="p-track"><div class="p-fill bg-danger" style="width: 88%;"></div></div>
+                </div>
+                <div class="progress-row">
+                    <div class="p-header"><span>30-40元 价格带存量市场模型</span> <span>存续缝隙机会 (30%)</span></div>
+                    <div class="p-track"><div class="p-fill bg-safe" style="width: 30%;"></div></div>
+                </div>
+
+                <div class="section-cap">④ 微观落位避险建议</div>
+                <div class="tip-box">
+                    <div class="tip-icon">💡</div>
+                    <div class="tip-content">
+                        <strong>物理屏障勘误：常德路西侧区段避险</strong><br>
+                        该路段受下午强日照影响大，且行道树严重遮挡外立面展示。人行道狭窄且交警严格贴单，限制了外卖骑手的驻留取单效率。若在此选址，线上履约成本与拒单率将大幅攀升。
+                    </div>
+                </div>
+
+                <div class="section-cap">⑤ 潜在环境变量风险</div>
+                <div class="insight-block risk">
+                    <div class="ib-title">城市更新工程导致的阶段性客流阻断</div>
+                    调研反馈：延安中路北侧部分建筑群即将进入长达 8 个月的外立面改造周期。施工围挡将导致自然过客流量阻断近 70%。若选址落位该工程辐射区，需准备至少一年的长线抗风险资金准备。
+                </div>
+            </div>
+
+            <!-- Tab 3: 算账与财务预测 -->
+            <div id="tab-finance" class="tab-content">
+                <div class="section-cap">⑥ 财务预测与收支模型</div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="m-label">周边首排临街铺 均价</div>
+                        <div class="m-val red">35 - 50</div>
+                        <div class="m-sub">元/平米/天</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="m-label">保本点 (按单杯￥35)</div>
+                        <div class="m-val">120+ 杯</div>
+                        <div class="m-sub">每日纯堂食转化阈值</div>
+                    </div>
+                </div>
+
+                <div class="section-cap">⑦ ROI 与回本周期评估</div>
+                <div class="insight-block money">
+                    <div class="ib-title">租售比警戒线管控</div>
+                    在高客单价表象下，租金成本侵蚀现象严重。按基准 30 ㎡ 临街面每月 5 万元测算，<strong>租售比极易突破 25% 的高危警戒线</strong>。需具备日销 250 杯以上的运营能力，否则毛利不足以覆盖综合开支。
+                </div>
+                <div class="insight-block money">
+                    <div class="ib-title">营业天花板估值</div>
+                    参考区域内存量优良范本（前 20% 分位数据）：月平效约合营收 20-25 万元区间。但在扣除非核心商用成本及高昂物业管理费后，静利水平普遍在 15% 临界点。
+                </div>
+            </div>
+        </aside>
+
+        <!-- 终极裁决卡悬浮层 (最吸睛的结论) -->
+        <div class="final-decision-flyout">
+            <div class="flyout-header">投资决策建议指令</div>
+            <div class="score-row">
+                <div class="big-score">62</div>
+                <div class="grade-badge">C- 谨慎回避</div>
+            </div>
+            <div class="kill-reason">
+                <strong>[非入场理由阐述]：</strong> 选址具备城市级头部流量潜力，但<strong>极高的隐形成本门槛对资金周转率要求苛刻</strong>。区域市场已处完全竞争状态，头部连锁的规模效应将大幅削弱独立品牌溢价。缺乏成熟抗风险闭环经验不建议贸然进场测试。
+            </div>
+        </div>
+
+        <!-- 真实高德地图承载区 -->
+        <div class="map-wrapper">
+            <div id="amap-container"></div>
+        </div>
+
+    </div>
+
+    <script>
+        // ----------------------------------------
+        // 1. 选项卡交互逻辑
+        // ----------------------------------------
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // ----------------------------------------
+        // 2. G2Plot 雷达图渲染加载
+        // ----------------------------------------
+        const radarData = [
+            { item: '客流底盘', score: 95 },
+            { item: '消费力', score: 85 },
+            { item: '交通可达性', score: 90 },
+            { item: '经营成本 (越低分表示成本越差)', score: 30 },
+            { item: '竞争蓝海度', score: 20 },
+            { item: '品牌曝光价值', score: 98 }
+        ];
+        
+        const radarPlot = new G2Plot.Radar('radar-chart', {
+            data: radarData,
+            xField: 'item',
+            yField: 'score',
+            meta: { score: { alias: '维度评分', min: 0, max: 100 } },
+            autoFit: true,
+            theme: 'dark',
+            area: { style: { fill: '#66fcf1', fillOpacity: 0.15 } },
+            line: { style: { stroke: '#66fcf1', lineWidth: 2 } },
+            point: { size: 3, shape: 'circle', style: { fill: '#4cd137', stroke: '#4cd137' } },
+            xAxis: { 
+                line: null, tickLine: null,
+                label: { style: { fill: '#8b9ac1', fontSize: 11, fontWeight: 'bold' } }
+            },
+            yAxis: { grid: { line: { type: 'circle', style: { stroke: 'rgba(255,255,255,0.08)' }}}},
+            tooltip: { shared: true }
+        });
+        radarPlot.render();
+
+        // ----------------------------------------
+        // 3. 真实高德地图初始化渲染 (注入你的专属图层)
+        // ----------------------------------------
+        const targetPoint = [121.4485, 31.2268]; // 静安寺
+
+        const map = new AMap.Map('amap-container', {
+            zoom: 15.5,
+            center: targetPoint,
+            mapStyle: 'amap://styles/darkblue', // 你钟爱的暗黑科技主题
+            viewMode: '3D',
+            pitch: 50,
+            rotation: 10
+        });
+
+        map.on('complete', function() {
+            // 画中心靶心光圈
+            const targetMarker = new AMap.Marker({
+                position: targetPoint,
+                content: `<div style="width: 25px; height: 25px; border: 3px solid var(--accent-cyan); border-radius: 50%; box-shadow: 0 0 20px var(--accent-cyan); background: rgba(102, 252, 241, 0.4); display: flex; align-items: center; justify-content: center; cursor: pointer;"><div style="width: 5px; height: 5px; background: white; border-radius: 50%;"></div></div>`,
+                anchor: 'center',
+                zIndex: 100,
+                extData: { title: "拟选店址: 静安寺核心区", desc: "预计铺位面积: 30-50㎡<br>平均日租金估值: 45元/㎡/天" }
+            });
+            map.add(targetMarker);
+            
+            // 绑定点击事件，展示信息窗体
+            targetMarker.on('click', function(e) { showInfo(e.target); });
+
+            // 画竞品红海危险圈 (大范围红色面)
+            const dangerZone = new AMap.Circle({
+                center: targetPoint,
+                radius: 600,
+                strokeColor: '#ff1744', strokeOpacity: 0.8, strokeWeight: 2,
+                fillColor: '#ff1744', fillOpacity: 0.1, zIndex: 50,
+                cursor: 'pointer',
+                extData: { title: "高危竞争饱和圈", desc: "圈内监测到 47 家存续经营的同类业态品牌门店。<br>建议避开圈内中轴线选址。" }
+            });
+            map.add(dangerZone);
+            
+            dangerZone.on('click', function(e) {
+                const infoWindow = new AMap.InfoWindow({
+                    isCustom: true,
+                    content: `<div class="custom-info-window"><a href="javascript:void(0)" class="amap-info-close" onclick="map.clearInfoWindow()">✖</a><h4>${e.target.getExtData().title}</h4><p>${e.target.getExtData().desc}</p></div>`,
+                    offset: new AMap.Pixel(0, -20)
+                });
+                infoWindow.open(map, e.lnglat);
+            });
+
+            // 撒点：周边顶级写字楼 (白领取水点 - 绿色锚点)
+            const businessNodes = [
+                { loc: [121.450, 31.225], name: "越洋广场" },
+                { loc: [121.445, 31.229], name: "会德丰国际广场" },
+                { loc: [121.453, 31.227], name: "嘉里中心办公楼" },
+                { loc: [121.449, 31.221], name: "上海展览中心片区" }
+            ];
+            
+            businessNodes.forEach(pt => {
+                const marker = new AMap.Marker({
+                    position: pt.loc,
+                    content: `<div style="padding: 2px 6px; background: rgba(0,230,118,0.2); border: 1px solid var(--success); color: var(--success); font-family: 'JetBrains Mono'; font-size: 10px; font-weight: bold; border-radius: 4px; backdrop-filter: blur(4px); cursor: pointer;">OFFICE NODE</div>`,
+                    anchor: 'center',
+                    offset: new AMap.Pixel(0, 0),
+                    extData: { title: pt.name, desc: "核心优质白领高频通勤集散锚点。<br>对精品客单价容忍度较高。" }
+                });
+                marker.setMap(map);
+                marker.on('click', function(e) { showInfo(e.target); });
+            });
+            
+            // 信息窗体公用渲染函数
+            function showInfo(marker) {
+                const data = marker.getExtData();
+                const infoWindow = new AMap.InfoWindow({
+                    isCustom: true,
+                    content: `<div class="custom-info-window"><a href="javascript:void(0)" class="amap-info-close" onclick="map.clearInfoWindow()">✖</a><h4>${data.title}</h4><p>${data.desc}</p></div>`,
+                    offset: new AMap.Pixel(0, -20)
+                });
+                infoWindow.open(map, marker.getPosition());
+            }
+        });
+    </script>
+</body>
+</html>
