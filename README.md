@@ -60,7 +60,6 @@
 ## 📊 专业研报交付样式 (Professional Report Style)
 这是本插件最终在你的终端里生成的交互式专业研报。遵循极简商业美学，拒绝冗余干扰，确保核心决策数据一目了然：
 
-*(下图展示了最新版白色主题下的多维度对比研报效果，包括雷达图评估、侧边栏固定结论区及高德 3D 渲染地图)*
 
 > **💡 [深度选址研报示例 (基于高德 LBS 真实数据抓取生成)]**
 > ![杭州选址研报界面演示](https://raw.githubusercontent.com/yyuchenBaii/ai_location_scout/main/docs/case.png) 
