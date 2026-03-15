@@ -106,8 +106,9 @@ description: 全场景 AI 商业商业地产咨询专家。涵盖小白选址、
    - 基础 HTML 模版中已经埋入了强大的渲染引擎 (`renderConcentricCircles`, `renderPOIs`, `renderHeatMap`) 并且自带了支持极客暗黑风和经典高德风的**地图主题切换器**。
    - **你不需要手写任何复杂的 JS 渲染代码**。你的任务仅仅是依据前置分析，在最后 JS 数据区中填充对应的数组数据，制造出惊艳的数据密度：
      - **同心辐射圈 (`circles`)**：注入 `radius` (半径), `color` (如 `#ff1744`), `title`, `desc`。建议至少画两层（核心截流致命圈 与 宏观覆盖圈）。
-     - **多态 POI (`pois`)**：注入 `loc: [经度,纬度]`, `name`, `desc` 并且必须指定 `type`（可选值只有三种：`office` 绿色写字楼锚点, `metro` 蓝色地铁流量入口, `competitor` 红色竞品死敌）。围绕靶心制造至少 3-8 个精准打点。
-     - **竞品热力点 (`heatData`)**：注入假定或真实的阵列数据如 `[ {lng: xx, lat: xx, count: 10}, ... ]` 代表附近客流密集度或竞争烈度，让前端渲出热力图。
+     - **多态 POI (`pois`)**：注入 `loc: [经度,纬度]`, `name`, `desc` 并且必须指定 `type`（可选值只有三种：`office` 绿色写字楼锚点, `metro` 蓝色地铁流量入口, `competitor` 红色竞品死敌）。
+     🔥🔥🔥 **【极度强调：真实打点还原体系】要求你在生成 `pois` 时，必须将上述 Python 脚本抓取返回的 `top_competitors_for_map` 数组中的【全部数十个竞品】（通过解析其 `location` 字段 "lng,lat"），一个不落地全部转换为 `type: 'competitor'` 的 POI 点位插入地图！严禁遗漏只标几个，务必用真实数据的密度震撼用户！**
+     - **竞品热力点 (`heatData`)**：利用上述转换出的几十个坐标，同步转化为热点阵列数据如 `[ {lng: xx, lat: xx, count: 10}, ... ]` 代表竞争烈度，让前端渲染出热力图。
    - **单体报告**：修改 `<script>` 里写死预留的 `circles`, `pois`, `heatData` 变量。
    - **多点位报告**：在每个方案的 JSON `{...}` 属性中，原样增加属性 `circles: [...]`, `pois: [...]`, `heatData: [...]`。
 6. **语言风格纪律**：

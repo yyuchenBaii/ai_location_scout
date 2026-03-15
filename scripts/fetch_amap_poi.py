@@ -10,7 +10,7 @@ from urllib.parse import urlencode
 # 脚本返回该坐标周边 2 公里内的真实竞品密度、最高分评价店及价格带，供 Agent 生成最终的研报数据。
 
 # 高德地图 Web 服务 API Key (建议通过环境变量注入，此处为演示占位)
-AMAP_WEB_KEY = "YOUR_AMAP_LBS_WEB_SERVICE_KEY"
+AMAP_WEB_KEY = os.environ.get("AMAP_WEB_KEY", "YOUR_AMAP_LBS_WEB_SERVICE_KEY")
 
 def fetch_poi_data(location, keywords, radius=2000):
     """
@@ -58,7 +58,14 @@ def fetch_poi_data(location, keywords, radius=2000):
                     "closest_competitor": f"{closest_competitor} (距离 {closest_distance}米)",
                     "competition_level": "🔥 极度红海 (饱和)" if total_competitors > 30 else ("⚠️ 存在竞争" if total_competitors > 10 else "🟢 局部蓝海"),
                     "high_quality_combatants": len(high_rating_competitors),
-                    "raw_top_3": [{"name": p["name"], "type": p["type"], "distance": p["distance"]} for p in pois[:3]]
+                    "top_competitors_for_map": [
+                        {
+                            "name": p["name"],
+                            "location": p["location"],
+                            "type": "competitor",
+                            "distance": p["distance"]
+                        } for p in pois[:40]
+                    ]
                 }
                 return insight
             else:
