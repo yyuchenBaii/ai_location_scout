@@ -625,6 +625,7 @@
 
         let currentLoc = 'C';
         let map, radarPlot, markers = [];
+        let globalHeatmapLayer = null;
 
         // ----------------------------------------
         // 核心可视化渲染引擎 (Render Engines)
@@ -678,11 +679,12 @@
         function renderHeatMap(mapInstance, heatDataPoints) {
             if(!heatDataPoints || heatDataPoints.length === 0) return;
             mapInstance.plugin(["AMap.HeatMap"], function () {
-                const heatmap = new AMap.HeatMap(mapInstance, {
+                if(globalHeatmapLayer) { globalHeatmapLayer.setMap(null); }
+                globalHeatmapLayer = new AMap.HeatMap(mapInstance, {
                     radius: 25, opacity: [0, 0.8],
                     gradient: { 0.5: 'blue', 0.65: 'rgb(117,211,248)', 0.7: 'rgb(0, 255, 0)', 0.9: '#ffea00', 1.0: 'red' }
                 });
-                heatmap.setDataSet({ data: heatDataPoints, max: 100 });
+                globalHeatmapLayer.setDataSet({ data: heatDataPoints, max: 100 });
             });
         }
 
@@ -739,6 +741,7 @@
 
             // Clear & Draw Markers
             map.clearMap();
+            if(globalHeatmapLayer) { globalHeatmapLayer.setMap(null); globalHeatmapLayer = null; }
             
             // 绘制中心靶心点
             const targetMarker = new AMap.Marker({
