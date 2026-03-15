@@ -64,7 +64,7 @@
 
 > **💡 [深度选址研报示例 (此图基于杭州实体商业数据动态生成)]**
 > ![杭州选址研报界面演示](https://raw.githubusercontent.com/yyuchenBaii/ai_location_scout/main/docs/showcase_hangzhou.png) 
-> (注：在终端中生成的本地 HTML 支持互动，你可以缩放地图、查看热力数据，比静态图片丰富100倍)
+> (注：如果在**本地电脑**终端运行，点开链接即是互动大屏；如果 Agent 部署在**云端服务器**，Agent 会直接输出 HTML 源码供你复制保存到本地查看。)
 
 ---
 
