@@ -57,13 +57,13 @@
 
 ---
 
-## 🎨 视觉级研报交付 (Visual Showcase)
-这是本插件最终在你的终端里生成的交互式暗黑大屏。不要再看干瘪枯燥的 Markdown 文本表单，感受下专业地推的视觉降维打击：
+## 📊 专业研报交付样式 (Professional Report Style)
+这是本插件最终在你的终端里生成的交互式专业研报。遵循极简商业美学，拒绝冗余干扰，确保核心决策数据一目了然：
 
-*(此处原本可展示 `resources/report_template.html` 与 `resources/location_report_comparison.html` 渲染出的真实效果截图，包括雷达图、存活进度条、高德暗黑渲染地图区)*
+*(下图展示了最新版白色主题下的多维度对比研报效果，包括雷达图评估、侧边栏固定结论区及高德 3D 渲染地图)*
 
-> **💡 [深度选址研报示例 (此图基于杭州实体商业数据动态生成)]**
-> ![杭州选址研报界面演示](https://raw.githubusercontent.com/yyuchenBaii/ai_location_scout/main/docs/showcase_hangzhou.png) 
+> **💡 [深度选址研报示例 (基于高德 LBS 真实数据抓取生成)]**
+> ![杭州选址研报界面演示](https://raw.githubusercontent.com/yyuchenBaii/ai_location_scout/main/docs/showcase_white.png) 
 > (注：如果在**本地电脑**终端运行，点开链接即是互动大屏；如果 Agent 部署在**云端服务器**，Agent 会直接输出 HTML 源码供你复制保存到本地查看。)
 
 ---
