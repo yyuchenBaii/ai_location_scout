@@ -70,13 +70,29 @@
 小龙虾会在后台自动拉取大脑配置（`SKILL.md`）、网页骨架（`resources/*`）和数据爬虫（`scripts/*`），并自动存放到 `.agents/skills` 目录。
 装完后，直接提问“帮我评估一下某个地址”，立刻见证奇迹。
 
-### ⚙️ 方式二：常规平台安装 (如 Coze / Dify 等)
+### ⚙️ 方式二：常规平台接入 (如 Coze / Dify 等)
 
 1. **装载大脑**: 将 `SKILL.md` 的内容全文复制，填入你机器人的“提示词 / 人设角色”框中。
-2. **连接高德数据源 (必做)**:
-   - 前往 [高德开放平台](https://console.amap.com/) 申请一个免费的 **Web 服务 API Key** 和一个 **Web 前端 JS API Key**。
-   - 将 Web 服务 Key 填入 `scripts/fetch_amap_poi.py`，并将该 Python 脚本作为“工具 / 插件”挂载给大模型，让它拥有真正的“眼睛”。
-   - 将 JS API Key 填入 `resources/` 下的所有 HTML 模板头部，这样 Agent 返回给你的研报里的地图就能成功渲染了。
+2. **挂载前端**: 将 `resources/` 里的 HTML 模板代码放入对应的工作流渲染节点。
+3. **连接高德数据源 (必读下文指南)**: 将 `scripts/fetch_amap_poi.py` 包装为一个 Python 工具暴露给大模型。
+
+---
+
+## 🔑 扫盲级 API 配置指南 (小白必读)
+
+为了让选址系统能在后台抓数据，并在前端画地图，你必须在 [高德开放平台](https://console.amap.com/) 免费申请 **【两种不同用途的 Key】**，新手千万别搞混：
+
+### 🦅 配置一：给 AI 装上“眼睛”（后台数据侦察）
+用到的是 **「Web 服务 API」**（只需 1 个 Key，无需安全密钥）。
+- **去哪申请**：高德控制台 $\rightarrow$ 应用管理 $\rightarrow$ 我的应用 $\rightarrow$ 添加 Key $\rightarrow$ 服务平台选 `Web服务`。
+- **填到哪里**：打开你刚下载的 `scripts/fetch_amap_poi.py`，把这段 Key 贴在第 13 行的 `YOUR_AMAP_LBS_WEB_SERVICE_KEY` 里。
+
+### 🗺️ 配置二：给研报装上“炫酷底图”（前端网页渲染）
+用到的是 **「Web 端 (JS API)」**（分为 1 个 Key + 1 个安全密钥 SecCode）。
+- **去哪申请**：同上，添加 Key $\rightarrow$ 服务平台选 `Web端 (JS API)`。申请完会同时得到 Key 和 安全密钥。
+- **填到哪里**：打开 `resources/` 目录下的所有 HTML 文件。在 `<head>` 头部的代码中，把“安全密钥”贴给 `YOUR_AMAP_SEC_CODE`，把“Key”贴给 `YOUR_AMAP_JSAPI_KEY`。
+
+*(配置完毕后，你的 AI 选址专家就天下无敌了。)*
 
 <details>
 <summary>它到底是如何工作的？（点击展开原理）</summary>
