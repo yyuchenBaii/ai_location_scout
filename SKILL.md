@@ -92,6 +92,11 @@ description: 全场景 AI 商业商业地产咨询专家。涵盖小白选址、
    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=YOUR_AMAP_JSAPI_KEY&plugin=AMap.Circle,AMap.InfoWindow"></script>
    ```
    *注意：必须带上 `&plugin=AMap.Circle,AMap.InfoWindow` 才能画出红海风险圈和信息弹窗。如果用户在前置对话里提供了 Key，请自动帮他们替换掉 `YOUR_AMAP_...`*
+   
+   ⚠️ **【极其重要的血泪警告：不要张冠李戴 Key 的类型！】**
+   - **前端 HTML 文件里** (JS 脚本中) 必须且只能填写用户的 **JS API Key 和安全密钥 (SecCode)**。
+   - **后端 Python 脚本里** (如 `fetch_amap_poi.py`) 必须且只能填写用户的 **Web 服务 API Key**。
+   - **绝对禁止**把 Web 服务 Key 填到 HTML 的 JSAPI 参数里，这会导致地图永远黑屏！
 4. **语言风格纪律**：
    - 必须使用专业、克制的地产咨询行业黑话（例如：截断效应、通勤漏斗、租售比红线、坪效估值）。
    - 绝不允许使用轻浮的 AI 网络用语词汇！
