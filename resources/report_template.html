@@ -14,16 +14,16 @@
 
     <style>
         :root {
-            --bg-base: #0a0a0f;
-            --panel-bg: rgba(18, 20, 28, 0.85);
-            --panel-border: rgba(102, 252, 241, 0.15);
-            --accent-cyan: #66fcf1;
-            --accent-teal: #45a29e;
-            --text-primary: #f0f0f0;
-            --text-secondary: #8b9ac1;
-            --success: #00e676;
-            --warning: #ffea00;
-            --danger: #ff1744;
+            --bg-base: #f8fafc;
+            --panel-bg: #ffffff;
+            --panel-border: #e2e8f0;
+            --accent-cyan: #2563eb;
+            --accent-teal: #1d4ed8;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
             --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
         }
 
@@ -195,7 +195,7 @@
         #amap-container {
             width: 100%;
             height: 100%;
-            background: #000;
+            background: #ffffff;
         }
 
         /* 悬浮终极打分卡 (右上角) */
@@ -204,12 +204,11 @@
             top: 20px;
             right: 20px;
             width: 320px;
-            background: rgba(15, 15, 20, 0.9);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--danger);
+            background: #ffffff;
+            border: 2px solid var(--danger);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 10px 30px rgba(255, 23, 68, 0.15);
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.15);
             z-index: 20;
         }
 
@@ -484,7 +483,19 @@
             padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600;
             cursor: pointer; transition: all 0.2s;
         }
-        .toggle-btn.active { background: rgba(102, 252, 241, 0.15); color: var(--accent-cyan); }
+        .toggle-btn.active { background: rgba(37, 99, 235, 0.1); color: var(--accent-cyan); }
+
+        /* 侧边栏结论区域 */
+        .sidebar-conclusion {
+            margin-top: auto;
+            border-top: 1px solid var(--panel-border);
+            background: #f1f5f9;
+            padding: 20px;
+            flex-shrink: 0;
+            display: none; /* 默认隐藏，仅在有多点对比需求时由逻辑开启或LLM填充内容 */
+        }
+        .sc-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .sc-content { font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
     </style>
 </head>
 
@@ -541,10 +552,18 @@
 
                 <div class="insight-block" style="margin-top: 15px;">
                     <div class="ib-title">客流质量结构分析</div>
-                    表面上具备庞大客流基数，但<strong>客群结构呈现显著双极化特征</strong>。约 60% 为周边商务楼宇通勤客（驻留时间短、购买频次高），另 40%
-                    为核心商圈目的性游逛客（价格敏感度低，重体验）。项目需明确核心服务主体，避免定位模棱两可。
+                    <div id="ui-insight1"></div>
                 </div>
             </div>
+
+            <!-- Global Conclusion Sub-Panel -->
+            <div class="sidebar-conclusion" id="ui-global-conclusion-container">
+                <div class="sc-title">📊 最终横向对比与投资建议</div>
+                <div class="sc-content" id="ui-global-conclusion-content">
+                    正在生成核心决策...
+                </div>
+            </div>
+        </aside>
 
             <!-- Tab 2: 竞争排雷与黑天鹅风险 -->
             <div id="tab-compete" class="tab-content">
@@ -629,10 +648,6 @@
         <!-- 真实高德地图承载区 -->
         <div class="map-wrapper">
             <div id="amap-container"></div>
-            <div class="map-style-toggle">
-                <button class="toggle-btn active" onclick="setMapStyle('amap://styles/darkblue', this)">🌑 深色科技</button>
-                <button class="toggle-btn" onclick="setMapStyle('amap://styles/normal', this)">☀️ 经典高德</button>
-            </div>
         </div>
 
     </div>
@@ -750,7 +765,7 @@
         window.map = new AMap.Map('amap-container', {
             zoom: 15.5,
             center: targetPoint,
-            mapStyle: 'amap://styles/darkblue', // 默认暗黑科技主题
+            mapStyle: 'amap://styles/normal', 
             viewMode: '3D',
             pitch: 50,
             rotation: 10
