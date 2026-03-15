@@ -127,6 +127,7 @@ const heatData = [{ lng, lat, count: 10 }, ...];
 - ❌ 侧边栏内容全是空架子，每个 Tab 只有一两句描述。
 - ❌ 在地图区域添加暗黑/白色主题切换按钮。
 - ❌ 在地图上用 `position: absolute` 的浮动 div 覆盖地图显示结论。
+- ❌ **自行创建图例 div**：模板中 `#map-legend` 已预置在地图左上角，**MUST 只往里追加 `.legend-item`，严禁删除或在其他地方重新创建图例容器**。
 - ❌ 在 HTML 代码中使用 `**文字**` Markdown 加粗语法（必须用 `<strong>` 标签）。
 
 ---
@@ -140,6 +141,7 @@ const heatData = [{ lng, lat, count: 10 }, ...];
 - [ ] 地图上竞品点位数是否 ≥ Python 脚本返回的竞品总数？
 - [ ] 随机点击 3 个 POI，InfoWindow 能否正常弹出并显示 5 个核心字段？
 - [ ] 最终结论是否写入侧边栏底部的 `#ui-global-conclusion-content` 容器？
+- [ ] 图例是否在地图左上角的 `#map-legend` 容器内？有没有在其他地方重复创建图例？
 - [ ] HTML 代码内部无 `**...**` Markdown 加粗语法？
 
 ---
