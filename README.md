@@ -62,9 +62,9 @@
 
 *(此处原本可展示 `resources/report_template.html` 与 `resources/location_report_comparison.html` 渲染出的真实效果截图，包括雷达图、存活进度条、高德暗黑渲染地图区)*
 
-> **💡 [多点对比交互大屏示例 (真实数据演示)]**
-> ![对比研报界面演示图片预留位](https://raw.githubusercontent.com/yyuchenBaii/ai_location_scout/main/docs/showcase_compare.png) 
-> (注：如果在终端中点开，该页面可在 A/B 候选点位间丝滑切换各种竞争维度的全览)
+> **💡 [深度选址研报示例 (此图基于杭州实体商业数据动态生成)]**
+> ![杭州选址研报界面演示](https://raw.githubusercontent.com/yyuchenBaii/ai_location_scout/main/docs/showcase_hangzhou.png) 
+> (注：在终端中生成的本地 HTML 支持互动，你可以缩放地图、查看热力数据，比静态图片丰富100倍)
 
 ---
 
