@@ -462,6 +462,10 @@
             color: #ccc;
         }
 
+        /* 高德 InfoWindow 文字强制黑色（防止继承页面深色主题） */
+        .amap-info-content { color: #1a1a1a !important; }
+        .amap-info-content * { color: inherit; }
+
         .amap-info-close {
             color: white;
             top: 10px;
