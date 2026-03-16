@@ -9,7 +9,10 @@ description: 全场景 AI 商业地产咨询专家。涵盖小白选址、加盟
 ---
 
 ## 阶段 1: 意图识别 (Intent Routing)
-**MUST** 在收到用户的第一句话后，先匹配以下 4 种核心场景之一再执行动作，严禁未经识别直接输出。
+**🔑 第一优先级卡点：API Key 检查**
+在收到用户的第一句话后，**MUST** 立即检查当前运行环境中是否已配置 `AMAP_WEB_KEY` 环境变量（这是调用 Python 脚本抓取数据所必需的）。如果没有配置或提示缺少 Key，你 **MUST** 停止任何推演，先要求用户提供【高德 Web 服务 API Key】。拿到 Key 并由你或用户设置好环境变量后，再继续后续步骤。
+
+**MUST** 在确认 Key 就绪并收到用户意图后，先匹配以下 4 种核心场景之一再执行动作，严禁未经识别直接输出。
 
 | 场景 | 触发条件 | 动作 | 交付 |
 |------|----------|------|------|
@@ -107,7 +110,8 @@ python scripts/fetch_amap_poi.py "<经度,纬度>" "<业态关键字>"
 <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=YOUR_AMAP_JSAPI_KEY&plugin=AMap.Circle,AMap.InfoWindow,AMap.HeatMap"></script>
 ```
 
-⚠️ **Key 类型严禁张冠李戴**：前端 JSAPI Key ≠ 后端 Web 服务 Key。用错将导致地图永久黑屏。
+⚠️ **Key 类型严禁张冠李戴**：前端 JSAPI Key ≠ 后端 Web 服务 Key。
+**MUST 提醒机制**：在交付 HTML 报告时，你 **MUST** 明确提醒用户，需要自己将代码中的 `YOUR_AMAP_SEC_CODE` 和 `YOUR_AMAP_JSAPI_KEY` 替换为他申请的网页端 JS API Key 和安全密钥，否则地图将无法渲染（或者你也可以在生成报告前主动向用户索取这两个 Key 并直接填入模板）。
 
 ---
 
