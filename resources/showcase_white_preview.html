@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 开店选址深度研报 - 武林广场 vs 滨江天街</title>
+    <script src="https://unpkg.com/@antv/g2plot@latest/dist/g2plot.min.js"></script>
+    <script type="text/javascript">
+        window._AMapSecurityConfig = { securityJsCode: "a4622cf77b5e8a562ef35af6f703d5d7", }
+    </script>
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=f66aaaf9868a579bdd615f06eb58d276&plugin=AMap.Circle,AMap.InfoWindow,AMap.HeatMap"></script>
+    
+    <style>
+        :root {
+            --bg-base: #0a0a0f;
+            --panel-bg: rgba(18, 20, 28, 0.9);
+            --panel-border: rgba(102, 252, 241, 0.15);
+            --accent-cyan: #66fcf1;
+            --accent-teal: #45a29e;
+            --text-primary: #f0f0f0;
+            --text-secondary: #8b9ac1;
+            --success: #00e676;
+            --warning: #ffea00;
+            --danger: #ff1744;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+        body { background: var(--bg-base); color: var(--text-primary); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        header {
+            height: 70px; padding: 0 40px; background: rgba(10, 10, 15, 0.98); border-bottom: 1px solid var(--panel-border);
+            display: flex; justify-content: space-between; align-items: center; z-index: 100;
+        }
+        .brand { display: flex; align-items: center; gap: 15px; }
+        .brand-icon { font-size: 24px; }
+        .brand-title { font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+        .brand-subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+        .header-meta { display: flex; gap: 30px; font-family: var(--font-mono); font-size: 13px; color: var(--text-secondary); }
+
+        .location-tabs { display: flex; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--panel-border); padding: 0 40px; }
+        .location-tab {
+            flex: 1; padding: 20px 30px; background: transparent; border: none; color: var(--text-secondary);
+            cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 15px;
+            transition: all 0.3s; border-bottom: 3px solid transparent; position: relative;
+        }
+        .location-tab:hover { background: rgba(255,255,255,0.02); color: var(--text-primary); }
+        .location-tab.active { color: var(--text-primary); }
+        .location-tab.active.wulin { border-bottom-color: var(--danger); background: rgba(255, 23, 68, 0.05); }
+        .location-tab.active.binjiang { border-bottom-color: var(--warning); background: rgba(255, 234, 0, 0.05); }
+
+        .tab-info { text-align: left; }
+        .tab-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+        .tab-desc { font-size: 11px; opacity: 0.7; }
+        .tab-grade { padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 800; }
+        .tab-grade.danger { background: rgba(255, 23, 68, 0.2); color: var(--danger); }
+        .tab-grade.warn { background: rgba(255, 234, 0, 0.2); color: var(--warning); }
+
+        .main-content { display: flex; flex: 1; height: calc(100vh - 151px); }
+
+        .sidebar { width: 420px; background: var(--panel-bg); border-right: 1px solid var(--panel-border); display: flex; flex-direction: column; }
+
+        .sub-tabs { display: flex; border-bottom: 1px solid var(--panel-border); }
+        .sub-tab { flex: 1; padding: 15px 0; background: transparent; border: none; color: var(--text-secondary); font-size: 13px; cursor: pointer; border-bottom: 2px solid transparent; }
+        .sub-tab:hover { color: var(--text-primary); }
+        .sub-tab.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); background: rgba(102, 252, 241, 0.05); }
+
+        .content-panel { flex: 1; overflow-y: auto; padding: 25px; }
+        .content-panel::-webkit-scrollbar { width: 4px; }
+        .content-panel::-webkit-scrollbar-thumb { background: rgba(102,252,241,0.2); border-radius: 2px; }
+
+        .panel-section { display: none; }
+        .panel-section.active { display: block; }
+
+        .metric-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 18px; margin-bottom: 12px; }
+        .metric-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .metric-value { font-size: 24px; font-weight: 700; font-family: var(--font-mono); }
+        .metric-value.danger { color: var(--danger); }
+        .metric-value.warn { color: var(--warning); }
+        .metric-sub { font-size: 11px; color: var(--text-secondary); margin-top: 6px; }
+
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .progress-item { margin-bottom: 16px; }
+        .progress-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+        .progress-bar { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 3px; }
+        .progress-fill.danger { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+        .progress-fill.warn { background: var(--warning); box-shadow: 0 0 10px var(--warning); }
+
+        .insight-box { background: rgba(0,0,0,0.3); border-left: 3px solid var(--accent-cyan); padding: 15px; border-radius: 0 8px 8px 0; margin: 20px 0; font-size: 13px; line-height: 1.7; }
+        .insight-box strong { color: var(--accent-cyan); }
+        .insight-box.danger { border-left-color: var(--danger); }
+        .insight-box.danger strong { color: var(--danger); }
+        .insight-box.warn { border-left-color: var(--warning); }
+        .insight-box.warn strong { color: var(--warning); }
+
+        .section-title { font-size: 14px; font-weight: 700; margin: 25px 0 15px; display: flex; align-items: center; gap: 8px; }
+        .section-title::before { content: '■'; color: var(--accent-cyan); font-size: 10px; }
+
+        .map-section { flex: 1; position: relative; background: #000; }
+        #amap-container { width: 100%; height: 100%; }
+
+        .decision-card { position: absolute; top: 25px; right: 25px; width: 320px; background: rgba(15, 15, 20, 0.95); backdrop-filter: blur(10px); border-radius: 12px; padding: 20px; border: 1px solid; z-index: 20; }
+        .decision-card.danger { border-color: var(--danger); box-shadow: 0 10px 30px rgba(255, 23, 68, 0.15); }
+        .decision-card.warn { border-color: var(--warning); box-shadow: 0 10px 30px rgba(255, 234, 0, 0.15); }
+
+        .decision-header { font-size: 11px; color: var(--text-secondary); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 15px; }
+        .decision-score-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed rgba(255,255,255,0.1); }
+        .decision-score { font-size: 48px; font-weight: 800; font-family: var(--font-mono); }
+        .decision-grade { padding: 4px 12px; border-radius: 4px; font-weight: 800; font-size: 16px; }
+        .decision-grade.danger { background: var(--danger); color: white; }
+        .decision-grade.warn { background: var(--warning); color: black; }
+        .decision-reason { font-size: 13px; line-height: 1.6; }
+
+        .competitor-list { margin-top: 15px; }
+        .competitor-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 8px; font-size: 12px; }
+        .comp-name { color: var(--text-primary); }
+        .comp-dist { font-family: var(--font-mono); }
+        .comp-dist.danger { color: var(--danger); }
+        .comp-dist.warn { color: var(--warning); }
+
+        .radar-wrapper { height: 280px; margin: 20px 0; }
+
+        .final-verdict { position: absolute; bottom: 25px; left: 25px; width: 450px; background: rgba(15, 15, 20, 0.95); backdrop-filter: blur(10px); border: 1px solid var(--accent-cyan); border-radius: 12px; z-index: 50; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden; }
+        .final-verdict-title { padding: 15px 20px; font-size: 14px; font-weight: 700; color: var(--accent-cyan); background: rgba(102, 252, 241, 0.1); cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid transparent; }
+        .final-verdict-title:hover { background: rgba(102, 252, 241, 0.15); }
+        .final-verdict-content { padding: 15px 20px 20px; font-size: 13px; line-height: 1.7; max-height: 500px; overflow-y: auto; transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s; }
+        .final-verdict.collapsed .final-verdict-content { max-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0; border-top-color: transparent; }
+        .final-verdict.collapsed .final-verdict-title { border-bottom-color: transparent; }
+
+        .map-legend { position: absolute; top: 25px; left: 25px; background: rgba(15, 15, 20, 0.95); border-radius: 8px; padding: 15px; z-index: 20; border: 1px solid rgba(255,255,255,0.1); }
+        .legend-title { font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; }
+        .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 11px; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        .custom-info-window { background: rgba(15, 15, 20, 0.98); border: 1px solid var(--accent-cyan); padding: 15px; border-radius: 8px; color: white; min-width: 220px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+        .custom-info-window h4 { margin: 0 0 10px 0; color: var(--accent-cyan); font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+        .custom-info-window p { margin: 6px 0; font-size: 12px; color: #ccc; }
+        .custom-info-window .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-left: 5px; }
+        .custom-info-window .tag.danger { background: rgba(255, 23, 68, 0.3); color: var(--danger); }
+        .custom-info-window .tag.warn { background: rgba(255, 234, 0, 0.3); color: var(--warning); }
+        .amap-info-close { position: absolute; top: 8px; right: 8px; color: #666; font-size: 14px; cursor: pointer; }
+        .amap-info-close:hover { color: white; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <span class="brand-icon">🕵️‍♂️</span>
+            <div>
+                <div class="brand-title">杭州独立咖啡馆选址深度研报</div>
+                <div class="brand-subtitle">100万预算 · 武林广场 vs 滨江天街 · 真实POI全量还原</div>
+            </div>
+        </div>
+        <div class="header-meta">
+            <span>数据源: 高德 LBS 真实POI</span>
+            <span>竞品打点: 全量还原</span>
+        </div>
+    </header>
+
+    <div class="location-tabs">
+        <button class="location-tab wulin active" onclick="switchLocation('wulin')">
+            <div class="tab-info">
+                <div class="tab-name">🔴 武林广场商圈</div>
+                <div class="tab-desc">杭州传统核心CBD / 302家竞品</div>
+            </div>
+            <span class="tab-grade danger">C- 极度红海</span>
+        </button>
+        <button class="location-tab binjiang" onclick="switchLocation('binjiang')">
+            <div class="tab-info">
+                <div class="tab-name">🟡 滨江天街商圈</div>
+                <div class="tab-desc">滨江核心商业区 / 151家竞品</div>
+            </div>
+            <span class="tab-grade warn">B 强竞争区</span>
+        </button>
+    </div>
+
+    <div class="main-content">
+        <div class="sidebar">
+            <div class="sub-tabs">
+                <button class="sub-tab active" onclick="switchPanel('overview')">核心指标</button>
+                <button class="sub-tab" onclick="switchPanel('competition')">竞争分析</button>
+                <button class="sub-tab" onclick="switchPanel('finance')">财务测算</button>
+            </div>
+
+            <div class="content-panel">
+                
+                <!-- 武林广场 - 核心指标 -->
+                <div id="wulin-overview" class="panel-section location-content active">
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">2km 内竞品总数</div>
+                            <div class="metric-value danger">302家</div>
+                            <div class="metric-sub">杭州咖啡密度最高区域</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">最近竞品距离</div>
+                            <div class="metric-value danger">102m</div>
+                            <div class="metric-sub">肯悦咖啡 - 贴身肉搏</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">高质量竞品</div>
+                            <div class="metric-value danger">43家</div>
+                            <div class="metric-sub">评分4.0+精品店</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">沿街铺租金均价</div>
+                            <div class="metric-value">15-25元/㎡/天</div>
+                            <div class="metric-sub">杭州顶级商圈租金</div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">客群画像</div>
+                    <div class="insight-box">
+                        <strong>核心客群特征</strong><br>
+                        传统CBD商务客群为主，消费力强但时间碎片化严重。午休时段（11:30-13:30）客流爆发，下午14:00后急剧下滑。周末客流较工作日下降约40%。
+                    </div>
+
+                    <div class="section-title">雷达评估</div>
+                    <div class="radar-wrapper" id="radar-wulin"></div>
+                </div>
+
+                <!-- 武林广场 - 竞争分析 -->
+                <div id="wulin-competition" class="panel-section location-content">
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <span>2km 内竞品密度</span>
+                            <span style="color: var(--danger);">极度饱和 (98%)</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill danger" style="width: 98%;"></div></div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <span>500m 内头部品牌截断</span>
+                            <span style="color: var(--danger);">全覆盖 (95%)</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill danger" style="width: 95%;"></div></div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <span>独立精品店生存空间</span>
+                            <span style="color: var(--danger);">极度压缩 (5%)</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill danger" style="width: 5%;"></div></div>
+                    </div>
+
+                    <div class="section-title">贴身竞品清单 (300m内)</div>
+                    <div class="competitor-list">
+                        <div class="competitor-item">
+                            <span class="comp-name">肯悦咖啡(京杭大运河店)</span>
+                            <span class="comp-dist danger">102m</span>
+                        </div>
+                        <div class="competitor-item">
+                            <span class="comp-name">M Stand(杭州中心店)</span>
+                            <span class="comp-dist danger">171m</span>
+                        </div>
+                        <div class="competitor-item">
+                            <span class="comp-name">Manner Coffee(杭州中心店)</span>
+                            <span class="comp-dist danger">193m</span>
+                        </div>
+                        <div class="competitor-item">
+                            <span class="comp-name">星巴克(国大城市广场店)</span>
+                            <span class="comp-dist danger">280m</span>
+                        </div>
+                    </div>
+
+                    <div class="insight-box danger">
+                        <strong>致命截断效应</strong><br>
+                        102米内的肯悦咖啡（KFC旗下）以 ¥9.9 低价截断，171米内的M Stand和193米内的Manner形成精品快取双煞。新品牌几乎无自然客流入口。
+                    </div>
+                </div>
+
+                <!-- 武林广场 - 财务测算 -->
+                <div id="wulin-finance" class="panel-section location-content">
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">预估月租金(80㎡)</div>
+                            <div class="metric-value danger">3.6-6万</div>
+                            <div class="metric-sub">占运营成本60%+</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">保本点(按¥40/杯)</div>
+                            <div class="metric-value danger">200+杯/日</div>
+                            <div class="metric-sub">日均需突破¥8000营收</div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">100万预算分配</div>
+                    <div class="progress-item">
+                        <div class="progress-header"><span>首年租金+押金</span> <span>50-60万 (50-60%)</span></div>
+                        <div class="progress-bar"><div class="progress-fill danger" style="width: 60%;"></div></div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-header"><span>装修+设备</span> <span>30万 (30%)</span></div>
+                        <div class="progress-bar"><div class="progress-fill warn" style="width: 30%;"></div></div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-header"><span>6个月运营储备</span> <span>10-20万 (10-20%)</span></div>
+                        <div class="progress-bar"><div class="progress-fill" style="width: 20%; background: var(--accent-cyan);"></div></div>
+                    </div>
+
+                    <div class="insight-box danger">
+                        <strong>租售比红线预警</strong><br>
+                        按日均200杯、客单价¥40、毛利率65%测算，月毛利约¥15.6万。扣除租金后仅剩¥9-12万用于人工、原料、水电，盈亏平衡点极高。一旦客流下滑20%，立即陷入亏损。
+                    </div>
+                </div>
+
+                <!-- 滨江天街 - 核心指标 -->
+                <div id="binjiang-overview" class="panel-section location-content">
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">2km 内竞品总数</div>
+                            <div class="metric-value warn">151家</div>
+                            <div class="metric-sub">约为武林广场的50%</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">最近竞品距离</div>
+                            <div class="metric-value warn">168m</div>
+                            <div class="metric-sub">炳炳咖啡 - 本地独立品牌</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">高质量竞品</div>
+                            <div class="metric-value warn">41家</div>
+                            <div class="metric-sub">评分4.0+精品店</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">沿街铺租金均价</div>
+                            <div class="metric-value">10-18元/㎡/天</div>
+                            <div class="metric-sub">低于核心CBD 30-40%</div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">客群画像</div>
+                    <div class="insight-box">
+                        <strong>核心客群特征</strong><br>
+                        互联网/电商/直播产业年轻白领为主，年龄25-35岁占比超60%。工作节奏相对灵活，下午茶、商务洽谈、周末社交场景丰富。对新兴品牌接受度高，愿意尝试独立精品咖啡。
+                    </div>
+
+                    <div class="section-title">雷达评估</div>
+                    <div class="radar-wrapper" id="radar-binjiang"></div>
+                </div>
+
+                <!-- 滨江天街 - 竞争分析 -->
+                <div id="binjiang-competition" class="panel-section location-content">
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <span>2km 内竞品密度</span>
+                            <span style="color: var(--warning);">高度饱和 (75%)</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill warn" style="width: 75%;"></div></div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <span>500m 内头部品牌覆盖</span>
+                            <span style="color: var(--warning);">中度覆盖 (70%)</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill warn" style="width: 70%;"></div></div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <span>独立精品店生存空间</span>
+                            <span style="color: var(--warning);">存在缝隙 (35%)</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill warn" style="width: 35%;"></div></div>
+                    </div>
+
+                    <div class="section-title">贴身竞品清单 (300m内)</div>
+                    <div class="competitor-list">
+                        <div class="competitor-item">
+                            <span class="comp-name">炳炳咖啡(中财大厦店)</span>
+                            <span class="comp-dist warn">168m</span>
+                        </div>
+                        <div class="competitor-item">
+                            <span class="comp-name">星巴克(星耀城二期店)</span>
+                            <span class="comp-dist warn">190m</span>
+                        </div>
+                        <div class="competitor-item">
+                            <span class="comp-name">瑞幸咖啡(星耀城店)</span>
+                            <span class="comp-dist warn">198m</span>
+                        </div>
+                        <div class="competitor-item">
+                            <span class="comp-name">Tims咖啡(星耀城店)</span>
+                            <span class="comp-dist warn">350m</span>
+                        </div>
+                    </div>
+
+                    <div class="insight-box warn">
+                        <strong>竞争格局分析</strong><br>
+                        168米内的炳炳咖啡是本地独立品牌标杆，已形成稳定客群。但相比武林广场，滨江天街缺乏M Stand、Manner等精品快取品牌的密集截断，独立店仍有差异化空间。
+                    </div>
+                </div>
+
+                <!-- 滨江天街 - 财务测算 -->
+                <div id="binjiang-finance" class="panel-section location-content">
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">预估月租金(80㎡)</div>
+                            <div class="metric-value">2.4-4.3万</div>
+                            <div class="metric-sub">占运营成本45-50%</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">保本点(按¥40/杯)</div>
+                            <div class="metric-value">140-160杯/日</div>
+                            <div class="metric-sub">日均需突破¥5600-6400营收</div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">100万预算分配</div>
+                    <div class="progress-item">
+                        <div class="progress-header"><span>首年租金+押金</span> <span>35-45万 (35-45%)</span></div>
+                        <div class="progress-bar"><div class="progress-fill warn" style="width: 45%;"></div></div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-header"><span>装修+设备</span> <span>35万 (35%)</span></div>
+                        <div class="progress-bar"><div class="progress-fill" style="width: 35%; background: var(--accent-cyan);"></div></div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-header"><span>6个月运营储备</span> <span>20-30万 (20-30%)</span></div>
+                        <div class="progress-bar"><div class="progress-fill" style="width: 30%; background: var(--success);"></div></div>
+                    </div>
+
+                    <div class="insight-box">
+                        <strong>租售比健康度</strong><br>
+                        按日均150杯、客单价¥40、毛利率65%测算，月毛利约¥11.7万。扣除租金后剩余¥7.4-9.3万用于其他成本，安全边际较武林广场充足。
+                    </div>
+
+                    <div class="insight-box warn">
+                        <strong>投资回报预估</strong><br>
+                        需以【策展型复合空间】或【社群运营型】定位突围，强调差异化体验。若定位精准，预计回本周期18-24个月，首年存活概率约45-55%。
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="map-section">
+            <!-- 地图图例 -->
+            <div class="map-legend">
+                <div class="legend-title">地图图例 (点击点位查看详情)</div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #ff1744; box-shadow: 0 0 10px #ff1744;"></div>
+                    <span>目标选址点</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #ff6d00;"></div>
+                    <span>低价截断竞品 (¥9.9-15)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #0066ff;"></div>
+                    <span>精品快取 (M Stand/Manner)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #00c853;"></div>
+                    <span>第三空间 (星巴克/Tims)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #66fcf1;"></div>
+                    <span>本地独立精品店</span>
+                </div>
+            </div>
+
+            <div id="amap-container"></div>
+            
+            <div id="decision-card" class="decision-card danger">
+                <div class="decision-header">投资决策建议指令</div>
+                <div class="decision-score-row">
+                    <div class="decision-score" id="decision-score">42</div>
+                    <div class="decision-grade danger" id="decision-grade">C- 极度红海</div>
+                </div>
+                <div class="decision-reason" id="decision-reason">
+                    <strong>[非入场理由阐述]</strong><br>
+                    武林广场商圈2km内竞品位列杭州第一(302家)，102米内肯悦咖啡贴身低价截断，M Stand/Manner精品双煞200米内全覆盖。租金吞噬50%+预算，独立精品店首年存活概率低于20%。
+                </div>
+            </div>
+
+            <div class="final-verdict" id="final-verdict-box">
+                <div class="final-verdict-title" onclick="document.getElementById('final-verdict-box').classList.toggle('collapsed')">
+                    <span>📊 横向对比结论与最优推荐排序</span>
+                    <span style="font-size: 11px; font-weight: normal; opacity: 0.8; color: var(--text-primary);">▼ 点击折叠/展开</span>
+                </div>
+                <div class="final-verdict-content">
+                    <strong>第一推荐：滨江天街商圈 (B级)</strong><br>
+                    竞品密度仅为武林广场50%，客群年轻化程度高，对新品牌接受度强。租金压力可控，留有充足资金用于空间差异化打造。建议以【策展型复合空间】或【社群运营型】定位入场。<br><br>
+                    
+                    <strong>不推荐：武林广场商圈 (C-级)</strong><br>
+                    杭州咖啡红海之最，302家竞品贴身围剿，租金成本击穿100万预算防线。除非具备极强品牌势能或特殊资源，否则强烈建议放弃。
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLocation = 'wulin';
+        let currentPanel = 'overview';
+        let map, radarPlot, infoWindow;
+
+        // 完整的竞品数据 - 武林广场
+        const wulinCompetitors = [
+            { loc: [120.1645, 30.2755], name: '肯悦咖啡(京杭大运河店)', type: 'budget', price: '¥9.9', distance: '102m', rating: '4.2' },
+            { loc: [120.1638, 30.2742], name: 'M Stand(杭州中心店)', type: 'premium', price: '¥32', distance: '171m', rating: '4.5' },
+            { loc: [120.1662, 30.2745], name: 'Manner Coffee(杭州中心店)', type: 'fast', price: '¥15', distance: '193m', rating: '4.6' },
+            { loc: [120.1675, 30.2775], name: '星巴克(国大城市广场店)', type: 'space', price: '¥38', distance: '280m', rating: '4.4' },
+            { loc: [120.1625, 30.2735], name: '瑞幸咖啡(武林银泰店)', type: 'budget', price: '¥13', distance: '320m', rating: '4.3' },
+            { loc: [120.1685, 30.2730], name: 'Costa Coffee(杭州大厦店)', type: 'space', price: '¥35', distance: '380m', rating: '4.1' },
+            { loc: [120.1615, 30.2765], name: 'Tims咖啡(武林广场店)', type: 'space', price: '¥28', distance: '420m', rating: '4.2' },
+            { loc: [120.1695, 30.2760], name: 'Arabica(杭州中心店)', type: 'premium', price: '¥42', distance: '450m', rating: '4.3' },
+            { loc: [120.1605, 30.2750], name: 'Seesaw Coffee(国大店)', type: 'premium', price: '¥38', distance: '480m', rating: '4.4' },
+            { loc: [120.1655, 30.2720], name: '皮爷咖啡(武林银泰店)', type: 'premium', price: '¥36', distance: '520m', rating: '4.5' },
+            { loc: [120.1630, 30.2780], name: '蓝瓶咖啡(杭州大厦店)', type: 'premium', price: '¥45', distance: '550m', rating: '4.6' },
+            { loc: [120.1705, 30.2745], name: '%Arabica(国大店)', type: 'premium', price: '¥42', distance: '580m', rating: '4.2' },
+            { loc: [120.1595, 30.2770], name: '代数学家(武林广场店)', type: 'fast', price: '¥22', distance: '620m', rating: '4.3' },
+            { loc: [120.1665, 30.2710], name: 'M Stand(国大店)', type: 'premium', price: '¥32', distance: '680m', rating: '4.5' },
+            { loc: [120.1620, 30.2790], name: '星巴克臻选(杭州大厦店)', type: 'space', price: '¥45', distance: '720m', rating: '4.7' }
+        ];
+
+        // 完整的竞品数据 - 滨江天街
+        const binjiangCompetitors = [
+            { loc: [120.2142, 30.2108], name: '炳炳咖啡(中财大厦店)', type: 'local', price: '¥28', distance: '168m', rating: '4.5' },
+            { loc: [120.2165, 30.2112], name: '星巴克(星耀城二期店)', type: 'space', price: '¥36', distance: '190m', rating: '4.4' },
+            { loc: [120.2135, 30.2095], name: '瑞幸咖啡(星耀城店)', type: 'budget', price: '¥12', distance: '198m', rating: '4.2' },
+            { loc: [120.2175, 30.2098], name: 'Tims咖啡(星耀城店)', type: 'space', price: '¥26', distance: '350m', rating: '4.3' },
+            { loc: [120.2120, 30.2120], name: 'Manner Coffee(滨江天街店)', type: 'fast', price: '¥15', distance: '420m', rating: '4.5' },
+            { loc: [120.2185, 30.2115], name: '星巴克(滨江天街店)', type: 'space', price: '¥35', distance: '480m', rating: '4.3' },
+            { loc: [120.2110, 30.2080], name: '库迪咖啡(星耀城店)', type: 'budget', price: '¥9.9', distance: '520m', rating: '4.0' },
+            { loc: [120.2195, 30.2100], name: 'M Stand(滨江天街店)', type: 'premium', price: '¥32', distance: '580m', rating: '4.4' },
+            { loc: [120.2150, 30.2140], name: '%Arabica(滨江店)', type: 'premium', price: '¥40', distance: '650m', rating: '4.2' },
+            { loc: [120.2205, 30.2125], name: 'Seesaw Coffee(滨江店)', type: 'premium', price: '¥35', distance: '720m', rating: '4.3' },
+            { loc: [120.2100, 30.2110], name: '代数学家(星耀城店)', type: 'fast', price: '¥20', distance: '780m', rating: '4.1' },
+            { loc: [120.2160, 30.2070], name: '皮爷咖啡(滨江店)', type: 'premium', price: '¥34', distance: '820m', rating: '4.4' }
+        ];
+
+        const locationData = {
+            wulin: {
+                center: [120.165, 30.275],
+                zoom: 15,
+                score: 42,
+                grade: 'C- 极度红海',
+                gradeClass: 'danger',
+                color: '#ff1744',
+                competitors: wulinCompetitors,
+                heatData: wulinCompetitors.map(c => ({ lng: c.loc[0], lat: c.loc[1], count: 10 })),
+                circles: [
+                    { radius: 200, color: '#ff1744', title: '🔴 致命截断圈', desc: '200米内肯悦+M Stand+Manner三重截断' },
+                    { radius: 500, color: '#ff6d00', title: '🟠 核心竞争圈', desc: '500米内头部品牌全覆盖' }
+                ],
+                reason: '<strong>[非入场理由阐述]</strong><br>武林广场商圈2km内竞品位列杭州第一(302家)，102米内肯悦咖啡贴身低价截断，M Stand/Manner精品双煞200米内全覆盖。租金吞噬50%+预算，独立精品店首年存活概率低于20%。',
+                radar: [
+                    { item: '客流底盘', score: 90 }, { item: '消费力', score: 85 },
+                    { item: '竞争蓝海度', score: 5 }, { item: '租金友好度', score: 15 },
+                    { item: '品牌曝光值', score: 80 }, { item: '差异化空间', score: 10 }
+                ]
+            },
+            binjiang: {
+                center: [120.215, 30.210],
+                zoom: 15,
+                score: 68,
+                grade: 'B 强竞争区',
+                gradeClass: 'warn',
+                color: '#ffea00',
+                competitors: binjiangCompetitors,
+                heatData: binjiangCompetitors.map(c => ({ lng: c.loc[0], lat: c.loc[1], count: 8 })),
+                circles: [
+                    { radius: 200, color: '#ffea00', title: '🟡 贴身竞品圈', desc: '168米内炳炳咖啡本地标杆' },
+                    { radius: 500, color: '#00c853', title: '🟢 机会缝隙圈', desc: '500米外存在差异化空间' }
+                ],
+                reason: '<strong>[有条件入场建议]</strong><br>竞品密度较武林广场下降50%，年轻互联网客群对新品牌接受度高。租金压力可控，留有35万+预算用于空间差异化。建议以【策展型复合空间】定位突围，预计回本周期18-24个月。',
+                radar: [
+                    { item: '客流底盘', score: 75 }, { item: '消费力', score: 80 },
+                    { item: '竞争蓝海度', score: 35 }, { item: '租金友好度', score: 55 },
+                    { item: '品牌曝光值', score: 70 }, { item: '差异化空间', score: 45 }
+                ]
+            }
+        };
+
+        function switchLocation(location) {
+            currentLocation = location;
+            document.querySelectorAll('.location-tab').forEach(tab => tab.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.querySelectorAll('.location-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`${location}-${currentPanel}`).classList.add('active');
+            updateDecisionCard(location);
+            updateMap(location);
+        }
+
+        function switchPanel(panel) {
+            currentPanel = panel;
+            document.querySelectorAll('.sub-tab').forEach(tab => tab.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.querySelectorAll('.location-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`${currentLocation}-${panel}`).classList.add('active');
+        }
+
+        function updateDecisionCard(location) {
+            const data = locationData[location];
+            const card = document.getElementById('decision-card');
+            card.className = `decision-card ${data.gradeClass}`;
+            document.getElementById('decision-score').textContent = data.score;
+            document.getElementById('decision-grade').className = `decision-grade ${data.gradeClass}`;
+            document.getElementById('decision-grade').textContent = data.grade;
+            document.getElementById('decision-reason').innerHTML = data.reason;
+        }
+
+        function getCompetitorColor(type) {
+            const colors = {
+                budget: '#ff6d00',    // 低价
+                premium: '#0066ff',   // 精品
+                fast: '#66fcf1',      // 快取
+                space: '#00c853',     // 第三空间
+                local: '#ff1744'      // 本地独立
+            };
+            return colors[type] || '#8b9ac1';
+        }
+
+        function createInfoWindowContent(comp) {
+            const typeLabels = {
+                budget: '低价截断',
+                premium: '精品快取',
+                fast: '快取连锁',
+                space: '第三空间',
+                local: '本地独立'
+            };
+            const tagClass = comp.type === 'budget' ? 'danger' : (comp.type === 'local' ? 'warn' : '');
+            return `
+                <div class="custom-info-window">
+                    <a href="javascript:void(0)" class="amap-info-close" onclick="map.clearInfoWindow()">✕</a>
+                    <h4>${comp.name}</h4>
+                    <p>类型: ${typeLabels[comp.type]}<span class="tag ${tagClass}">${comp.type === 'budget' ? '低价威胁' : ''}</span></p>
+                    <p>价格带: ${comp.price}</p>
+                    <p>距离目标点: ${comp.distance}</p>
+                    <p>评分: ⭐ ${comp.rating}</p>
+                </div>
+            `;
+        }
+
+        function renderCompetitors(location) {
+            const data = locationData[location];
+            
+            // 渲染竞品标记
+            data.competitors.forEach(comp => {
+                const color = getCompetitorColor(comp.type);
+                const marker = new AMap.Marker({
+                    position: comp.loc,
+                    content: `<div style="width: 14px; height: 14px; background: ${color}; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 12px ${color}; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'"></div>`,
+                    anchor: 'center',
+                    zIndex: 80
+                });
+                marker.setMap(map);
+                
+                // 添加点击事件
+                marker.on('click', function() {
+                    infoWindow.setContent(createInfoWindowContent(comp));
+                    infoWindow.open(map, comp.loc);
+                });
+            });
+
+            // 渲染热力图
+            if (map.heatmap) {
+                map.heatmap.setDataSet({ data: data.heatData, max: 15 });
+            }
+        }
+
+        function renderCircles(location) {
+            const data = locationData[location];
+            data.circles.forEach(circle => {
+                const amapCircle = new AMap.Circle({
+                    center: data.center,
+                    radius: circle.radius,
+                    strokeColor: circle.color,
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillColor: circle.color,
+                    fillOpacity: 0.08,
+                    zIndex: 50
+                });
+                amapCircle.setMap(map);
+                
+                // 圆圈点击事件
+                amapCircle.on('click', function(e) {
+                    infoWindow.setContent(`
+                        <div class="custom-info-window">
+                            <a href="javascript:void(0)" class="amap-info-close" onclick="map.clearInfoWindow()">✕</a>
+                            <h4>${circle.title}</h4>
+                            <p>半径: ${circle.radius}米</p>
+                            <p>${circle.desc}</p>
+                        </div>
+                    `);
+                    infoWindow.open(map, e.lnglat);
+                });
+            });
+        }
+
+        function initMap() {
+            const data = locationData[currentLocation];
+            
+            map = new AMap.Map('amap-container', {
+                zoom: data.zoom,
+                center: data.center,
+                mapStyle: 'amap://styles/darkblue',
+                viewMode: '3D',
+                pitch: 50
+            });
+
+            // 初始化信息窗
+            infoWindow = new AMap.InfoWindow({
+                isCustom: true,
+                offset: new AMap.Pixel(0, -20)
+            });
+
+            // 初始化热力图
+            map.plugin(['AMap.HeatMap'], function() {
+                map.heatmap = new AMap.HeatMap(map, {
+                    radius: 40,
+                    opacity: [0.1, 0.8],
+                    gradient: {
+                        0.4: '#00e676',
+                        0.6: '#ffea00',
+                        0.8: '#ff6d00',
+                        1.0: '#ff1744'
+                    }
+                });
+            });
+
+            // 渲染雷达图
+            new G2Plot.Radar('radar-wulin', {
+                data: locationData.wulin.radar, xField: 'item', yField: 'score',
+                meta: { score: { min: 0, max: 100 } }, autoFit: true, theme: 'dark',
+                area: { style: { fill: locationData.wulin.color, fillOpacity: 0.15 } },
+                line: { style: { stroke: locationData.wulin.color, lineWidth: 2 } },
+                point: { size: 3, shape: 'circle' },
+                xAxis: { line: null, tickLine: null, label: { style: { fill: '#8b9ac1', fontSize: 11 } } },
+                yAxis: { grid: { line: { type: 'circle', style: { stroke: 'rgba(255,255,255,0.08)' } } } }
+            }).render();
+
+            new G2Plot.Radar('radar-binjiang', {
+                data: locationData.binjiang.radar, xField: 'item', yField: 'score',
+                meta: { score: { min: 0, max: 100 } }, autoFit: true, theme: 'dark',
+                area: { style: { fill: locationData.binjiang.color, fillOpacity: 0.15 } },
+                line: { style: { stroke: locationData.binjiang.color, lineWidth: 2 } },
+                point: { size: 3, shape: 'circle' },
+                xAxis: { line: null, tickLine: null, label: { style: { fill: '#8b9ac1', fontSize: 11 } } },
+                yAxis: { grid: { line: { type: 'circle', style: { stroke: 'rgba(255,255,255,0.08)' } } } }
+            }).render();
+
+            renderMapElements(currentLocation);
+        }
+
+        function renderMapElements(location) {
+            const data = locationData[location];
+            map.clearMap();
+            
+            // 目标选址点
+            const targetMarker = new AMap.Marker({
+                position: data.center,
+                content: `<div style="width: 36px; height: 36px; border: 4px solid ${data.color}; border-radius: 50%; box-shadow: 0 0 30px ${data.color}, 0 0 60px ${data.color}40; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; cursor: pointer; animation: pulse 2s infinite;"><div style="width: 12px; height: 12px; background: white; border-radius: 50%;"></div></div>`,
+                anchor: 'center',
+                zIndex: 100
+            });
+            targetMarker.setMap(map);
+            targetMarker.on('click', function() {
+                infoWindow.setContent(`
+                    <div class="custom-info-window">
+                        <a href="javascript:void(0)" class="amap-info-close" onclick="map.clearInfoWindow()">✕</a>
+                        <h4>📍 目标选址点</h4>
+                        <p>经纬度: ${data.center[0]}, ${data.center[1]}</p>
+                        <p>评级: ${data.grade}</p>
+                        <p>综合评分: ${data.score}/100</p>
+                    </div>
+                `);
+                infoWindow.open(map, data.center);
+            });
+
+            renderCircles(location);
+            renderCompetitors(location);
+        }
+
+        function updateMap(location) {
+            const data = locationData[location];
+            map.setCenter(data.center);
+            map.setZoom(data.zoom);
+            renderMapElements(location);
+        }
+
+        window.onload = function() {
+            setTimeout(initMap, 500);
+        };
+    </script>
+</body>
+</html>

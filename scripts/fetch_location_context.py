@@ -43,21 +43,32 @@ def fetch_regeo(location):
     if result.get("status") != "1":
         return None, result.get("info", "逆地理编码失败")
 
-    regeo = result.get("regeocode", {})
-    addr_comp = regeo.get("addressComponent", {})
+    regeo = result.get("regeocode") or {}
+    addr_comp = regeo.get("addressComponent") or {}
+    if isinstance(addr_comp, list):
+        addr_comp = {}
 
-    district = addr_comp.get("district", "")
-    township = addr_comp.get("township", "")
-    street = addr_comp.get("streetNumber", {}).get("street", "")
-    number = addr_comp.get("streetNumber", {}).get("number", "")
-    formatted = regeo.get("formatted_address", "")
+    district = addr_comp.get("district") if isinstance(addr_comp.get("district"), str) else ""
+    township = addr_comp.get("township") if isinstance(addr_comp.get("township"), str) else ""
+    street_num = addr_comp.get("streetNumber") or {}
+    if isinstance(street_num, list):
+        street_num = {}
+    street = street_num.get("street") if isinstance(street_num.get("street"), str) else ""
+    number = street_num.get("number") if isinstance(street_num.get("number"), str) else ""
+    formatted = regeo.get("formatted_address") if isinstance(regeo.get("formatted_address"), str) else ""
 
     # 商圈（可能有多个，取前两个）
-    biz_areas = addr_comp.get("businessAreas", [])
-    biz_area_names = [b.get("name", "") for b in biz_areas[:2] if b.get("name")]
+    biz_areas = addr_comp.get("businessAreas") or []
+    if isinstance(biz_areas, dict):
+        biz_areas = [biz_areas]  # Just in case AMap returns a single dict instead of list
+    elif isinstance(biz_areas, str):
+        biz_areas = []
+    biz_area_names = [b.get("name", "") for b in biz_areas[:2] if isinstance(b, dict) and b.get("name")]
 
     # 周边地标（取前3个，距离最近的知名 POI）
-    pois = regeo.get("pois", [])
+    pois = regeo.get("pois") or []
+    if not isinstance(pois, list):
+        pois = []
     landmarks = []
     for p in pois[:3]:
         name = p.get("name", "")
@@ -119,12 +130,32 @@ def fetch_walk_time(origin, destination):
         return None, None
 
     try:
-        route = result["route"]["paths"][0]
-        duration_sec = int(route["duration"])
-        distance_m = int(route["distance"])
+        route = result.get("route", {}).get("paths", [])[0]
+        if isinstance(route, list) or not route: return None, None
+        duration_sec = int(route.get("duration", 0))
+        distance_m = int(route.get("distance", 0))
         return round(duration_sec / 60, 1), distance_m
-    except (KeyError, IndexError, ValueError):
+    except (KeyError, IndexError, ValueError, TypeError):
         return None, None
+
+def fetch_poi_count(location, types, radius=500):
+    """搜索周边指定类型的 POI 数量"""
+    result = _amap_get(
+        "https://restapi.amap.com/v3/place/around",
+        {
+            "key": AMAP_WEB_KEY,
+            "location": location,
+            "types": types,
+            "radius": radius,
+            "extensions": "base",
+            "offset": 1,
+            "page": 1,
+            "output": "json",
+        }
+    )
+    if result.get("status") != "1":
+        return 0
+    return int(result.get("count", 0))
 
 
 def fetch_location_context(location):
@@ -165,9 +196,15 @@ def fetch_location_context(location):
             "metro_flow_label": "❌ 无地铁覆盖，客流依赖周边自然人流",
         }
 
+    # Step 3: 获取写字楼与住宅区数量，进行潮汐推演
+    office_count = fetch_poi_count(location, "120200", radius=500) # 写字楼
+    residential_count = fetch_poi_count(location, "120300", radius=500) # 住宅区
+
     return {
         **regeo_data,
         **metro_info,
+        "office_count": office_count,
+        "residential_count": residential_count,
         "_note": "以上数据来源：高德逆地理编码 + 步行路径规划，均为真实 API 数据，可溯源验证。",
     }
 

@@ -7,14 +7,14 @@
     <title>AI 开店选址深度研报 - 杭州多方案对比</title>
     <script src="https://unpkg.com/@antv/g2plot@latest/dist/g2plot.min.js"></script>
     <script type="text/javascript">
-        window._AMapSecurityConfig = { securityJsCode: "YOUR_AMAP_SEC_CODE", }
+        window._AMapSecurityConfig = { securityJsCode: "4622cf77b5e8a562ef35af6f703d5d7", }
     </script>
-    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=YOUR_AMAP_JSAPI_KEY&plugin=AMap.Circle,AMap.InfoWindow,AMap.HeatMap"></script>
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=f66aaaf9868a579bdd615f06eb58d276&plugin=AMap.Circle,AMap.InfoWindow,AMap.HeatMap"></script>
 
     <style>
         :root {
             --bg-base: #0a0a0f;
-            --panel-bg: rgba(18, 20, 28, 0.92);
+            --panel-bg: rgba(18, 20, 28, 0.85);
             --panel-border: rgba(102, 252, 241, 0.15);
             --accent-cyan: #66fcf1;
             --text-primary: #f0f0f0;
@@ -135,17 +135,15 @@
         }
 
         .sidebar-panel {
-            width: 420px;
-            min-width: 420px;
-            max-width: 420px;
+            width: 500px;
             background: var(--panel-bg);
+            backdrop-filter: blur(15px);
             border-right: 1px solid var(--panel-border);
             display: flex;
             flex-direction: column;
             z-index: 10;
             box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
             height: 100%;
-            overflow: hidden;
         }
 
         .tabs-header {
@@ -201,55 +199,21 @@
         #amap-container {
             width: 100%;
             height: 100%;
-            background: #ffffff;
-        }
-
-        /* 地图左上角固定图例 */
-        .map-legend {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(10, 10, 15, 0.88);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(102, 252, 241, 0.2);
-            border-radius: 8px;
-            padding: 12px 16px;
-            z-index: 50;
-            min-width: 160px;
-            font-size: 12px;
-        }
-        .map-legend-title {
-            font-size: 11px;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 6px;
-            color: rgba(255,255,255,0.85);
-        }
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            flex-shrink: 0;
+            background: #000;
         }
 
         .final-decision-flyout {
             position: absolute;
             top: 20px;
             right: 20px;
-            width: 320px;
-            background: #ffffff;
-            border: 2px solid var(--accent-cyan);
+            width: 340px;
+            background: rgba(15, 15, 20, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--accent-cyan);
             border-radius: 12px;
             padding: 20px;
             z-index: 20;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: border-color 0.3s;
         }
 
         .flyout-header {
@@ -462,10 +426,6 @@
             color: #ccc;
         }
 
-        /* 高德 InfoWindow 文字强制黑色（防止继承页面深色主题） */
-        .amap-info-content { color: #1a1a1a !important; }
-        .amap-info-content * { color: inherit; }
-
         .amap-info-close {
             color: white;
             top: 10px;
@@ -487,18 +447,7 @@
             padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600;
             cursor: pointer; transition: all 0.2s;
         }
-        .toggle-btn.active { background: rgba(37, 99, 235, 0.1); color: var(--accent-cyan); }
-
-        /* 侧边栏结论区域 */
-        .sidebar-conclusion {
-            margin-top: auto;
-            border-top: 1px solid var(--panel-border);
-            background: #f1f5f9;
-            padding: 20px;
-            flex-shrink: 0;
-        }
-        .sc-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-        .sc-content { font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
+        .toggle-btn.active { background: rgba(102, 252, 241, 0.15); color: var(--accent-cyan); }
     </style>
 </head>
 
@@ -523,11 +472,9 @@
     <div class="workspace">
         <aside class="sidebar-panel">
             <div class="tabs-header">
-                <button class="tab-btn active" onclick="switchTab('tab-macro')">宏观画像</button>
-                <button class="tab-btn" onclick="switchTab('tab-flow')">潮汐推演</button>
-                <button class="tab-btn" onclick="switchTab('tab-compete')">红海排雷</button>
+                <button class="tab-btn active" onclick="switchTab('tab-macro')">宏观&人群画像</button>
+                <button class="tab-btn" onclick="switchTab('tab-compete')">竞争&红海排雷</button>
                 <button class="tab-btn" onclick="switchTab('tab-finance')">成本测算</button>
-                <button class="tab-btn" onclick="switchTab('tab-compliance')">谈判底牌</button>
             </div>
 
             <!-- Tab 1 -->
@@ -551,27 +498,6 @@
                 <div class="insight-block" style="margin-top: 15px;">
                     <div class="ib-title">人效归因分析</div>
                     <div id="ui-insight1"></div>
-                </div>
-            </div>
-
-            <!-- Tab: 客群与潮汐推演 -->
-            <div id="tab-flow" class="tab-content">
-                <div class="section-cap">目标客群与潮汐推演</div>
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="m-label">周边 500m 写字楼/商务区</div>
-                        <div class="m-val" id="ui-flow-office"></div>
-                        <div class="m-sub">工作日通勤流引擎</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="m-label">周边 500m 住宅/小区</div>
-                        <div class="m-val" id="ui-flow-resi"></div>
-                        <div class="m-sub">地缘性社区客底盘</div>
-                    </div>
-                </div>
-                <div class="insight-block" style="margin-top: 15px;">
-                    <div class="ib-title">消费潮汐推演结论</div>
-                    <div id="ui-flow-insight"></div>
                 </div>
             </div>
 
@@ -606,31 +532,6 @@
                     <div id="ui-insight3"></div>
                 </div>
             </div>
-
-            <!-- Tab: 谈判底牌与合规排雷 -->
-            <div id="tab-compliance" class="tab-content">
-                <div class="section-cap">工程红线与合规排雷</div>
-                <div class="insight-block risk">
-                    <div class="ib-title">硬性工程条件核查</div>
-                    <div id="ui-comp-insight"></div>
-                </div>
-                <div class="section-cap">房东谈判底牌清单</div>
-                <div class="tip-box">
-                    <div class="tip-icon">🛡️</div>
-                    <div class="tip-content">
-                        <strong>合同谈判核心筹码：</strong><br>
-                        <div id="ui-comp-neg"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Global Conclusion Sub-Panel -->
-            <div class="sidebar-conclusion">
-                <div class="sc-title">📊 横向对比结论与推荐排序</div>
-                <div class="sc-content" id="ui-global-conclusion-content">
-                    正在生成对比建议...
-                </div>
-            </div>
         </aside>
 
         <!-- Final Decision Flyout -->
@@ -645,12 +546,9 @@
 
         <div class="map-wrapper">
             <div id="amap-container"></div>
-            <!-- 地图图例：位置已固定在地图左上角，严禁移动 .map-legend 容器。
-                 MUST 根据本次实际 POI 类型动态填写 .legend-item 内容（按业态来，不要写死）。
-                 示例：居酒屋竞品 / 日料竞品 / 目标选址点 等 -->
-            <div class="map-legend" id="map-legend">
-                <div class="map-legend-title">点击点位查看详情</div>
-                <!-- 在此处动态插入 .legend-item，根据实际打点的 POI 类型决定 -->
+            <div class="map-style-toggle">
+                <button class="toggle-btn active" onclick="setMapStyle('amap://styles/darkblue', this)">🌑 深色科技</button>
+                <button class="toggle-btn" onclick="setMapStyle('amap://styles/normal', this)">☀️ 经典高德</button>
             </div>
         </div>
     </div>
@@ -668,39 +566,76 @@
                     { item: '客群隐形身价', score: 80 }, { item: '经营成本友好度', score: 20 },
                     { item: '竞争蓝海度', score: 10 }, { item: '出片传播潜能', score: 40 }
                 ],
-                intent: '核心 <strong>IT 互联网心脏地带</strong>，午休刚需极高，但对空间溢价极度不敏锐。',
+                intent: '<p>核心 <strong>IT 互联网心脏地带</strong>，作为大厂研发中心腹地，此区域承载了日均近十万的高频流动人口。主要客群画像为 24-35 岁高强度脑力劳动者，核心诉求是迅速获取咖啡因以维持工作状态，对 <strong>空间溢价与调性</strong> 极度不敏锐。他们具备极强的线上消费习惯，外卖渗透率极高。</p>',
                 metric1: '55,000+', m1sub: '海量换乘与通勤人潮',
                 metric2: '<span style="color:var(--danger)">1.2%</span>', m2sub: '拿着就走，毫无驻留时间',
-                insight1: '人群画像极度硬核，白领核心诉求是“续命提取液”而非“环境享受”。花80万在这里做硬装，相当于锦衣夜行。',
+                insight1: '<p>人群画像极度硬核：白领核心诉求是“续命提取液”而非“环境享受”。花80万在这里做硬装，相当于锦衣夜行。绝大部分订单来源于写字楼工位的线上配送，线下门脸带来的自然进店率不足 2%。极低的驻留时间导致坪效模型严重畸形。</p>',
                 progress: [
                     { label: '低价走量咖啡密度', pct: 95, color: 'bg-danger' },
                     { label: '中高档独立品牌存活', pct: 15, color: 'bg-warn' }
                 ],
-                insight2: '<strong>死亡红海警戒</strong>：周边的瑞幸与街区下沉品牌已填满每一个写字大堂底商。高昂商发转让费极易抽干现金流。',
-                finance1: '<span style="color:var(--danger)">4.0 - 6.5</span>', finance2: '<span style="color:var(--danger)">220+</span>',
-                insight3: '租约成本将彻底击穿 80 万总包的防线，如果勉强拿下背街巷尾的烂铺，则必无日漫量。属于绝对的高危资产。',
-                reason: '<span class="highlight">[非入场理由阐述]：</span>租金杀手+红海绞肉机。80万不够交半年房租和天价转让费。这里的赛道只属于资本连锁玩家。'
+                insight2: '<p><strong>死亡红海警戒</strong>：经过精细网格化扫描，周边两公里内挤满了瑞幸、库迪、Manner 以及各类街区下沉品牌。它们已经填满了大大小小每一个写字大堂的底商。此处的排雷结论是：高昂的商发转让费和长达季度的免租期谈判将极易在初期抽干你的现金流。</p>',
+                finance1: '<span style="color:var(--danger)">4.0 - 6.5</span>', finance2: '<span style="color:var(--danger)">250+</span>',
+                insight3: '<p>以当前极差的竞争蓝海度推演，该地段的租约成本加上 20万以上的硬装，将彻底击穿 80 万总包的财务模型防线。即使勉强拿下背街巷尾的烂铺，也会因为失去外卖骑手的动线优势而必无日漫量。属于绝对的高危资产。</p>',
+                reason: '<span class="highlight">[非入场理由阐述]：</span>租金杀手+超级红海绞肉机。80万不够交半年房租和天价入场费。这里的赛道只属于拥有极强资本背景的连锁快消玩家。',
+                circles: [
+                    { radius: 250, color: '#ff1744', fillOpacity: 0.15, title: '250m 致命绞肉机', desc: '瑞幸与库迪密集对冲带，至少分布 7 家低客单价咖啡。' },
+                    { radius: 600, color: '#ffea00', fillOpacity: 0.05, title: '600m 远期截留圈', desc: '外围办公楼的白领下楼 100m 内必定遇到首家咖啡店，难以渗透核心区域。' },
+                    { radius: 1000, color: '#29b6f6', fillOpacity: 0.02, title: '1km 通勤覆盖圈', desc: '核心辐射的早晚高峰地铁与公交转换站范围。' }
+                ],
+                pois: [
+                    { loc: [119.996, 30.282], name: '瑞幸 EFC 门店', type: 'competitor', desc: '月销破万单，价格屠夫，大厂底商。' },
+                    { loc: [119.994, 30.280], name: '库迪 仓前店', type: 'competitor', desc: '低价强补贴，彻底截断附近社区和外来入口。' },
+                    { loc: [119.995, 30.283], name: 'Manner Coffee', type: 'competitor', desc: '高频自带杯复购，死磕精品快取。' },
+                    { loc: [119.998, 30.281], name: 'Tims天好咖啡', type: 'competitor', desc: '占据街角绝佳展示位，主打早午餐拦截。' },
+                    { loc: [119.998, 30.283], name: '阿里中心 (EFC) T1', type: 'office', desc: '核心白领聚集，外卖主力军，但楼下已有 M-Stand。' },
+                    { loc: [119.993, 30.282], name: '奥克斯创智一号', type: 'office', desc: '中段消费力研发中心，工作日中午流量极大。' },
+                    { loc: [119.997, 30.278], name: '创远路地铁站', type: 'metro', desc: '早晚高峰 1.2w 人次，但出站即直奔电梯，驻留率 < 1%。' }
+                ],
+                heatData: [
+                    {lng: 119.996, lat: 30.282, count: 90}, {lng: 119.995, lat: 30.281, count: 85},
+                    {lng: 119.994, lat: 30.280, count: 70}, {lng: 119.997, lat: 30.283, count: 50},
+                    {lng: 119.998, lat: 30.280, count: 65}, {lng: 119.996, lat: 30.279, count: 95},
+                    {lng: 119.993, lat: 30.281, count: 40}, {lng: 119.998, lat: 30.284, count: 55},
+                    {lng: 119.995, lat: 30.277, count: 30}, {lng: 119.992, lat: 30.278, count: 25}
+                ]
             },
             'B': {
-                id: 'B', name: '亲橙里 (阿里西溪内核)', recommend: false, latlng: [120.024, 30.266],
+                id: 'B', name: '亲橙里 (阿里西溪)', recommend: false, latlng: [120.024, 30.266],
                 score: 55, grade: 'B 强竞争区', gradeClass: 'warn', color: 'var(--warning)',
                 radar: [
                     { item: '工作日客流', score: 90 }, { item: '周末爆发客流', score: 75 },
                     { item: '客群隐形身价', score: 95 }, { item: '经营成本友好度', score: 30 },
                     { item: '竞争蓝海度', score: 25 }, { item: '出片传播潜能', score: 60 }
                 ],
-                intent: '阿里生态重度辐射区，<strong>商谈属性爆表</strong>，客群支付能力全杭州顶流。',
-                metric1: '38,000+', m1sub: '以阿里大军/供应商为主',
-                metric2: '<span style="color:var(--warning)">2.8%</span>', m2sub: '商业洽谈转化尚可',
-                insight1: '虽然客人有钱且需要谈事，但大厂内部自带极其廉价完善的咖啡供给，外部铺位若无降维级产品力极难破局。',
+                intent: '<p>阿里西溪园区重度辐射区，<strong>商谈与接待属性爆表</strong>，客群支付能力全杭州顶流。主要以阿里大军及其核心供应商队伍为主，消费力具备极强的抗周期性，但对环境的私密性和品牌调性有近乎苛刻的要求。</p>',
+                metric1: '38,000+', m1sub: '高端访客与高管群体为主',
+                metric2: '<span style="color:var(--warning)">2.8%</span>', m2sub: '商务洽谈转化尚可，但门槛高',
+                insight1: '<p>虽然客人有钱且极度需要私密的非正式商谈空间，但必须认清现实：大厂内部自带极其廉价且完善的咖啡/茶饮供给，外部铺位若无降维级产品力或极其稀缺的包间资源，极难破局。来这里开店，拼的核心不是咖啡豆，而是社交场域。</p>',
                 progress: [
                     { label: '大型星巴克/MStand包围', pct: 85, color: 'bg-danger' },
                     { label: '缝隙蓝海机会', pct: 35, color: 'bg-warn' }
                 ],
-                insight2: '<strong>截留效应剧烈</strong>：亲橙里内部铺位极其稀缺且租金惊人，外围底商面临商场巨头的全方位流量抽干。',
+                insight2: '<p><strong>截留效应剧烈</strong>：亲橙里内部核心铺位极其稀缺且租金惊人（动辄每平米每天十数元）。如果退而求其次选择外围底商，则面临商场巨头的全方位流量抽干，形成“灯下黑”的死亡螺旋。</p>',
                 finance1: '<span style="color:var(--warning)">3.5 - 4.5</span>', finance2: '<span style="color:var(--warning)">160+</span>',
-                insight3: '由于极度依赖工作日商用流量，周末面临周边土著的流失。盈亏平衡点偏高，抗风险能力差。',
-                reason: '<span class="highlight">[非入场理由阐述]：</span>大厂的羊毛不好薅！内部极高配的饮食设施已干掉了一大批周边餐饮，租金泡沫极大。'
+                insight3: '<p>由于极度依赖工作日高净值商用流量，该地周末面临周边土著出逃的流失。高昂的物管费和隐性公关成本使得盈亏平衡点偏高，抗风险能力属于中庸水平，80万仅够交个入场费。</p>',
+                reason: '<span class="highlight">[非入场理由阐述]：</span>大厂的羊毛不好薅！内部高配设施已干掉一批餐饮，外部商圈租金泡沫极大，非百万级旗舰店不可轻易触碰。',
+                circles: [
+                    { radius: 200, color: '#ff1744', fillOpacity: 0.1, title: '200m 灯下黑死角', desc: '亲橙里外广场及周边辅路，被商场主建筑严重遮挡视线。' },
+                    { radius: 500, color: '#00e676', fillOpacity: 0.05, title: '500m 大厂腹地', desc: '阿里西溪园区日常最高频步行的餐饮解决范围。' }
+                ],
+                pois: [
+                    { loc: [120.024, 30.266], name: '星巴克甄选 (亲橙里)', type: 'competitor', desc: '大面积双层旗舰店，占据绝对的主力洽谈场景。' },
+                    { loc: [120.022, 30.268], name: 'Seesaw Coffee', type: 'competitor', desc: '创意特调为主，精准截流年轻一代运营岗。' },
+                    { loc: [120.025, 30.264], name: 'Peets Coffee', type: 'competitor', desc: '深度复购客群，商务精英首选之一。' },
+                    { loc: [120.023, 30.265], name: '阿里巴巴西溪园区 (正门)', type: 'office', desc: '数万互联网高P所在地，消费能力顶级。' },
+                    { loc: [120.027, 30.267], name: '同花顺大楼', type: 'office', desc: '金融科技人群，午后咖啡需求旺盛。' }
+                ],
+                heatData: [
+                    {lng: 120.024, lat: 30.266, count: 100}, {lng: 120.023, lat: 30.265, count: 90},
+                    {lng: 120.025, lat: 30.267, count: 85}, {lng: 120.022, lat: 30.264, count: 60},
+                    {lng: 120.026, lat: 30.268, count: 40}, {lng: 120.021, lat: 30.265, count: 30}
+                ]
             },
             'C': {
                 id: 'C', name: '良渚文化村', recommend: true, latlng: [119.967, 30.380],
@@ -708,20 +643,38 @@
                 radar: [
                     { item: '工作日客流', score: 40 }, { item: '周末爆发客流', score: 95 },
                     { item: '客群隐形身价', score: 88 }, { item: '经营成本友好度', score: 85 },
-                    { item: '竞争蓝海度', score: 70 }, { item: '出片传播潜能', score: 90 }
+                    { item: '竞争蓝海度', score: 70 }, { item: '出片传播潜能', score: 100 }
                 ],
-                intent: '80万总包预算下，强寻具备消费宽容度的<strong>中高端客群与微度假锚点</strong>。',
-                metric1: '22,000+', m1sub: '区域微循环与周末爆发客流',
-                metric2: '<span style="color:var(--success)">3.8%</span>', m2sub: '高情绪价值买单意愿',
-                insight1: '呈现平滑的高黏性社区生态与周末爆发式的艺文客流。这里的受众不仅具备承载单杯 35+ 的财务实力，且愿意为出片率支付空间溢价。',
+                intent: '<p>80万总包预算下，当前最优解！强烈建议放弃传统商务区，转战具备消费宽容度的<strong>中高端客群与微度假文化锚点</strong>。此区域人群对“审美品味”和“质感空间”极具敏锐度。</p>',
+                metric1: '22,000+', m1sub: '区域原住民与疯狂的周末文旅',
+                metric2: '<span style="color:var(--success)">8.5%</span>', m2sub: '极高的溢价接受度与情绪转化',
+                insight1: '<p>良渚展现了令人惊艳的平滑复购生态：工作日由高黏性、高净值的别墅/大平层原住民托底，周末则迎来全杭州打卡圈爆发式的艺文客流。这里的受众不仅具备承载单杯 45+ 甚至搭配下午茶套餐的财务实力，更愿意为极具设计感的花园露台或废墟风出片率支付三倍的空间溢价。</p>',
                 progress: [
-                    { label: '大型重模式精品空间', pct: 50, color: 'bg-warn' },
-                    { label: '独立主理人蓝海缺口', pct: 75, color: 'bg-safe' }
+                    { label: '千篇一律的连锁模型', pct: 15, color: 'bg-warn' },
+                    { label: '独立主理人品牌蓝海缺口', pct: 85, color: 'bg-safe' }
                 ],
-                insight2: '<strong>回避内侧死角商展</strong>：部分村民广场外围非市政底商虽便宜，但非动线必经地，切勿为了省那几千块误入“实体百慕大”。',
-                finance1: '<span style="color:var(--success)">1.8 - 2.5</span>', finance2: '<span style="color:var(--success)">80+</span>',
-                insight3: '租约成本被成功压制在了极度健康的15% 乃至更低。80万全砸在调性与设备上，半年回血不是梦。',
-                reason: '<span class="highlight">[核心破局理由阐述]：</span>极其正确的战略转移。用 80 万在此形成“降维打击”——换取极低的租售比与高溢价池！'
+                insight2: '<p><strong>规避内侧死角商展</strong>：虽然大盘极优，但务必警惕部分村民广场外围、非市政动线的底商。虽然租金便宜一半，但属于非动线必经地，在此处省钱无异于步入物理学上的“实体百慕大”，周末客流根本看不见你的招牌。</p>',
+                finance1: '<span style="color:var(--success)">1.2 - 2.0</span>', finance2: '<span style="color:var(--success)">55+</span>',
+                insight3: '<p>由于选址避开了市中心的惨烈厮杀，租约成本被成功压制在了极度健康的 15% 乃至更低。你完全可以将 80 万总包的兵力重仓砸在空间调性、顶级辣妈/文青软装与高级咖啡设备上。日出 55 单即可实现正向循环，半年回血绝不是幻觉。</p>',
+                reason: '<span class="highlight">[核心破局理由阐述]：</span>极其正确的战略转移。用 80 万在文化村形成了绝对的“审美降维打击”——换取极低的固定租售比与无穷无尽的高溢价品牌护城河！',
+                circles: [
+                    { radius: 400, color: '#ffea00', fillOpacity: 0.1, title: '400m 核心截留圈', desc: '覆盖大屋顶至玉鸟流苏的主干道，务必在必经之路上抢占双面曝光铺位。' },
+                    { radius: 1000, color: '#00e676', fillOpacity: 0.05, title: '1km 度假漫游圈', desc: '覆盖良渚博物院等宏大文化空间，文青游客的步行容忍度极高，适合做隐秘的私厨咖啡。' }
+                ],
+                pois: [
+                    { loc: [119.965, 30.381], name: '良渚文化艺术中心 (大屋顶)', type: 'office', desc: '顶级艺文聚集地，安藤忠雄设计，全杭州文青出片圣地。' },
+                    { loc: [119.968, 30.378], name: '玉鸟流苏社区', type: 'office', desc: '高净值原住民聚落，大量艺术家与文化中产居住。' },
+                    { loc: [119.960, 30.385], name: '良渚博物院', type: 'office', desc: '家庭微度假首选，亲子客群与研学流量带来周末大爆。' },
+                    { loc: [119.963, 30.383], name: '良渚站', type: 'metro', desc: '微度假游客集散核心入口。' },
+                    { loc: [119.966, 30.379], name: '某独立社区咖啡', type: 'competitor', desc: '生存良好，常态化爆满，价格带 35-45 元。' },
+                    { loc: [119.969, 30.382], name: '某法式西点铺', type: 'competitor', desc: '以高超的颜值抢占下午茶生态，构成侧面竞争。' }
+                ],
+                heatData: [
+                    {lng: 119.965, lat: 30.381, count: 95}, {lng: 119.966, lat: 30.380, count: 80},
+                    {lng: 119.968, lat: 30.378, count: 70}, {lng: 119.960, lat: 30.385, count: 85},
+                    {lng: 119.963, lat: 30.383, count: 50}, {lng: 119.964, lat: 30.382, count: 40},
+                    {lng: 119.967, lat: 30.379, count: 65}, {lng: 119.961, lat: 30.384, count: 45}
+                ]
             }
         };
 
@@ -795,7 +748,7 @@
         // ----------------------------------------
         function initMap() {
             map = new AMap.Map('amap-container', {
-                zoom: 15, center: locationData['C'].latlng, mapStyle: 'amap://styles/normal', viewMode: '3D', pitch: 45
+                zoom: 15, center: locationData['C'].latlng, mapStyle: 'amap://styles/darkblue', viewMode: '3D', pitch: 45
             });
 
             radarPlot = new G2Plot.Radar('radar-chart', {
@@ -809,8 +762,6 @@
                 tooltip: { shared: true }
             });
             radarPlot.render();
-
-            document.getElementById('ui-global-conclusion-content').innerHTML = '<strong>横向对比综合建议：</strong><br>在此输入各点位优劣势总结与最终投资建议排序...';
 
             buildSwitcher();
             switchLocation('C'); // Default to C

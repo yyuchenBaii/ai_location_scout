@@ -562,9 +562,11 @@
         <!-- 左侧高密度折叠面板 -->
         <aside class="sidebar-panel">
             <div class="tabs-header">
-                <button class="tab-btn active" onclick="switchTab('tab-macro')">宏观&人群画像</button>
-                <button class="tab-btn" onclick="switchTab('tab-compete')">竞争&红海排雷</button>
-                <button class="tab-btn" onclick="switchTab('tab-finance')">成本与营收测算</button>
+                <button class="tab-btn active" onclick="switchTab('tab-macro')">地段画像</button>
+                <button class="tab-btn" onclick="switchTab('tab-flow')">客流潮汐</button>
+                <button class="tab-btn" onclick="switchTab('tab-compete')">竞争排雷</button>
+                <button class="tab-btn" onclick="switchTab('tab-finance')">财务测算</button>
+                <button class="tab-btn" onclick="switchTab('tab-compliance')">谈判合规</button>
             </div>
 
             <!-- Tab 1: 宏观分析与客流画像 -->
@@ -605,6 +607,27 @@
                 </div>
             </div>
         </aside>
+
+            <!-- Tab: 客群与潮汐推演 -->
+            <div id="tab-flow" class="tab-content">
+                <div class="section-cap">③ 目标客群与潮汐推演</div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="m-label">周边 500m 写字楼/商务区</div>
+                        <div class="m-val">25 处</div>
+                        <div class="m-sub">工作日通勤流引擎</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="m-label">周边 500m 住宅/小区</div>
+                        <div class="m-val">4 处</div>
+                        <div class="m-sub">地缘性社区客底盘</div>
+                    </div>
+                </div>
+                <div class="insight-block" style="margin-top: 15px;">
+                    <div class="ib-title">消费潮汐推演结论</div>
+                    典型的【工作日潮汐】地段，早午市爆发，晚间及周末瞬间变‘死城’。只适合做早午餐/咖啡。
+                </div>
+            </div>
 
             <!-- Tab 2: 竞争排雷与黑天鹅风险 -->
             <div id="tab-compete" class="tab-content">
@@ -669,6 +692,23 @@
                 <div class="insight-block money">
                     <div class="ib-title">营业天花板估值</div>
                     参考区域内存量优良范本（前 20% 分位数据）：月平效约合营收 20-25 万元区间。但在扣除非核心商用成本及高昂物业管理费后，静利水平普遍在 15% 临界点。
+                </div>
+            </div>
+
+            <!-- Tab: 谈判底牌与合规排雷 -->
+            <div id="tab-compliance" class="tab-content">
+                <div class="section-cap">⑧ 工程红线与合规排雷</div>
+                <div class="insight-block risk">
+                    <div class="ib-title">硬性工程条件核查</div>
+                    大模型根据业态动态生成。例如重餐饮必须核查独立排烟管道、380V三相电及隔油池。确保大模型填入符合业态的强相关内容。
+                </div>
+                <div class="section-cap">⑨ 房东谈判底牌清单</div>
+                <div class="tip-box">
+                    <div class="tip-icon">🛡️</div>
+                    <div class="tip-content">
+                        <strong>合同谈判核心筹码：</strong><br>
+                        大模型动态生成。例如要求 1-2 个月的消防审批免租期，或者警惕转让费陷阱。要求大模型化身老法师给出最毒辣的谈判建议。
+                    </div>
                 </div>
             </div>
         </aside>
