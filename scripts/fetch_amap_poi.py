@@ -13,7 +13,7 @@ _SSL_CTX = ssl._create_unverified_context()
 # 新增输出字段：price_distribution（价格带分布）、rating_avg、top_threats、business_area 覆盖度
 # 用法：python fetch_amap_poi.py "<经度,纬度>" "<业态关键字>" [半径米数，默认2000]
 
-AMAP_WEB_KEY = os.environ.get("AMAP_WEB_KEY", "YOUR_AMAP_LBS_WEB_SERVICE_KEY")
+AMAP_WEB_KEY = os.environ.get("AMAP_WEB_KEY")
 
 
 def _classify_price(cost_str):
@@ -58,8 +58,11 @@ def fetch_poi_data(location, keywords, radius=2000):
     all_pois = []
     total_count = 0
 
+    import time
     # 多页抓取（最多 3 页 × 50 条 = 150 条），避免只取 50 条时数据截断
     for page in range(1, 4):
+        if page > 1:
+            time.sleep(0.5)
         url = "https://restapi.amap.com/v3/place/around"
         params = {
             "key": AMAP_WEB_KEY,

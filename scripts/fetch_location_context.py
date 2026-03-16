@@ -13,7 +13,7 @@ _SSL_CTX = ssl._create_unverified_context()
 # 用法：python fetch_location_context.py "<经度,纬度>"
 # 输出：行政区、所属商圈、周边地标、到最近地铁口的步行时长及截流判定
 
-AMAP_WEB_KEY = os.environ.get("AMAP_WEB_KEY", "YOUR_AMAP_LBS_WEB_SERVICE_KEY")
+AMAP_WEB_KEY = os.environ.get("AMAP_WEB_KEY")
 
 
 def _amap_get(url, params):

@@ -563,7 +563,6 @@
         <aside class="sidebar-panel">
             <div class="tabs-header">
                 <button class="tab-btn active" onclick="switchTab('tab-macro')">地段画像</button>
-                <button class="tab-btn" onclick="switchTab('tab-flow')">客流潮汐</button>
                 <button class="tab-btn" onclick="switchTab('tab-compete')">竞争排雷</button>
                 <button class="tab-btn" onclick="switchTab('tab-finance')">财务测算</button>
                 <button class="tab-btn" onclick="switchTab('tab-compliance')">谈判合规</button>
@@ -597,19 +596,7 @@
                     <div class="ib-title">客流质量结构分析</div>
                     <div id="ui-insight1"></div>
                 </div>
-            </div>
 
-            <!-- Global Conclusion Sub-Panel -->
-            <div class="sidebar-conclusion" id="ui-global-conclusion-container">
-                <div class="sc-title">📊 最终横向对比与投资建议</div>
-                <div class="sc-content" id="ui-global-conclusion-content">
-                    正在生成核心决策...
-                </div>
-            </div>
-        </aside>
-
-            <!-- Tab: 客群与潮汐推演 -->
-            <div id="tab-flow" class="tab-content">
                 <div class="section-cap">③ 目标客群与潮汐推演</div>
                 <div class="metrics-grid">
                     <div class="metric-card">
@@ -631,7 +618,7 @@
 
             <!-- Tab 2: 竞争排雷与黑天鹅风险 -->
             <div id="tab-compete" class="tab-content">
-                <div class="section-cap">③ 竞争环境扫描</div>
+                <div class="section-cap">④ 竞争环境扫描</div>
                 <div class="progress-row">
                     <div class="p-header"><span>1km 内同品类绝对数量 (47家)</span> <span>深度红海预警 (95%)</span></div>
                     <div class="p-track">
@@ -651,7 +638,7 @@
                     </div>
                 </div>
 
-                <div class="section-cap">④ 微观落位避险建议</div>
+                <div class="section-cap">⑤ 微观落位避险建议</div>
                 <div class="tip-box">
                     <div class="tip-icon">💡</div>
                     <div class="tip-content">
@@ -660,7 +647,7 @@
                     </div>
                 </div>
 
-                <div class="section-cap">⑤ 潜在环境变量风险</div>
+                <div class="section-cap">⑥ 潜在环境变量风险</div>
                 <div class="insight-block risk">
                     <div class="ib-title">城市更新工程导致的阶段性客流阻断</div>
                     调研反馈：延安中路北侧部分建筑群即将进入长达 8 个月的外立面改造周期。施工围挡将导致自然过客流量阻断近 70%。若选址落位该工程辐射区，需准备至少一年的长线抗风险资金准备。
@@ -669,7 +656,7 @@
 
             <!-- Tab 3: 算账与财务预测 -->
             <div id="tab-finance" class="tab-content">
-                <div class="section-cap">⑥ 财务预测与收支模型</div>
+                <div class="section-cap">⑦ 财务预测与收支模型</div>
                 <div class="metrics-grid">
                     <div class="metric-card">
                         <div class="m-label">周边首排临街铺 均价</div>
@@ -683,7 +670,7 @@
                     </div>
                 </div>
 
-                <div class="section-cap">⑦ ROI 与回本周期评估</div>
+                <div class="section-cap">⑧ ROI 与回本周期评估</div>
                 <div class="insight-block money">
                     <div class="ib-title">租售比警戒线管控</div>
                     在高客单价表象下，租金成本侵蚀现象严重。按基准 30 ㎡ 临街面每月 5 万元测算，<strong>租售比极易突破 25% 的高危警戒线</strong>。需具备日销 250
@@ -697,18 +684,26 @@
 
             <!-- Tab: 谈判底牌与合规排雷 -->
             <div id="tab-compliance" class="tab-content">
-                <div class="section-cap">⑧ 工程红线与合规排雷</div>
+                <div class="section-cap">⑨ 工程红线与合规排雷</div>
                 <div class="insight-block risk">
                     <div class="ib-title">硬性工程条件核查</div>
                     大模型根据业态动态生成。例如重餐饮必须核查独立排烟管道、380V三相电及隔油池。确保大模型填入符合业态的强相关内容。
                 </div>
-                <div class="section-cap">⑨ 房东谈判底牌清单</div>
+                <div class="section-cap">⑩ 房东谈判底牌清单</div>
                 <div class="tip-box">
                     <div class="tip-icon">🛡️</div>
                     <div class="tip-content">
                         <strong>合同谈判核心筹码：</strong><br>
                         大模型动态生成。例如要求 1-2 个月的消防审批免租期，或者警惕转让费陷阱。要求大模型化身老法师给出最毒辣的谈判建议。
                     </div>
+                </div>
+            </div>
+
+            <!-- Global Conclusion Sub-Panel -->
+            <div class="sidebar-conclusion" id="ui-global-conclusion-container">
+                <div class="sc-title">📊 最终横向对比与投资建议</div>
+                <div class="sc-content" id="ui-global-conclusion-content">
+                    正在生成核心决策...
                 </div>
             </div>
         </aside>
