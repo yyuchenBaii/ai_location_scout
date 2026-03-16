@@ -5,3 +5,13 @@ __pycache__/
 *$py.class
 *.so
 report.html
+build_report.py
+finalize_skill.py
+update_skill.py
+scripts/temp_geocode.py
+
+# Ignore personal reports and mock data in resources
+resources/*.html
+!resources/report_template.html
+!resources/location_report_comparison.html
+resources/*.png

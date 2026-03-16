@@ -140,6 +140,50 @@ python scripts/fetch_amap_poi.py "<经度,纬度>" "<业态关键字>"
 
 ---
 
+### 🔀 多商圈对比专属注射规范 (Comparison Template)
+
+当执行单点评估时，你可以直接替换 `<div id="...">` 内的 HTML。
+**但当且仅当执行多点对比时（对应 `location_report_comparison.html` 模板）：**
+模板的 UI 是**由底部的 Javascript 数据对象动态驱动的**。**绝对禁止**试图修改 HTML 里的 `div` 内容！
+你 **MUST** 找到模板 `<script>` 区块中的 `const locationData = { ... };` 对象，并直接替换它的内容。
+
+**每个商圈（店址）的数据字典必须严格遵守以下格式填充：**
+
+```javascript
+const locationData = {
+    'A': {
+        id: 'A', name: '商圈A名称', recommend: true, latlng: [lng, lat],
+        score: 88, grade: 'A- 强势买入', gradeClass: 'safe', color: 'var(--success)', // 颜色按评级: safe/warn/danger
+        radar: [
+            { item: '客流底盘', score: 95 }, { item: '交通可达性', score: 80 }, { item: '消费力层级', score: 70 },
+            { item: '成本控制', score: 60 }, { item: '竞争蓝海度', score: 20 }, { item: '风控安全性', score: 90 }
+        ],
+        intent: '...', // 对应【商业意图建模】
+        metric1: '55,000+', m1sub: '日均客流',
+        metric2: '1.2%', m2sub: '转化率',
+        insight1: '...', // 对应【客流质量结构分析】与【人效归因分析】
+        flowOffice: '...', flowResi: '...', // 写字楼与住宅数量
+        flowInsight: '...', // 对应【潮汐推演结论】
+        progress: [
+            { label: '低价咖啡密度', pct: 95, color: 'bg-danger' },
+            { label: '中高档独立品牌存活', pct: 15, color: 'bg-warn' }
+        ],
+        insight2: '...', // 对应【致命风险预警】与【微观避险】
+        finance1: '...', finance2: '...', // 租金及保本杯数
+        insight3: '...', // 对应【投资回报管控】与【天花板估值】
+        compInsight: '...', // 对应【工程红线排雷】
+        compNeg: '...', // 对应【谈判底牌】
+        reason: '...', // 最终核心判断理由
+        circles: [ /* 见下方地图数据规范 */ ], 
+        pois: [ /* 见下方地图数据规范 */ ]
+    },
+    'B': { ... }
+};
+```
+如果你在多点对比中继续采用改 HTML `div` 的方法，一旦用户点击切换按钮，你的内容将被瞬间清空，判定为严重违规！
+
+---
+
 ### 🗺️ 地图数据注入规范
 
 **MUST** 将 `top_competitors_for_map` 中的全部竞品坐标一个不落地转换为 POI：

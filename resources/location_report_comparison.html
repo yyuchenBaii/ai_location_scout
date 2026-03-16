@@ -675,6 +675,8 @@
                 insight2: '<strong>死亡红海警戒</strong>：周边的瑞幸与街区下沉品牌已填满每一个写字大堂底商。高昂商发转让费极易抽干现金流。',
                 finance1: '<span style="color:var(--danger)">4.0 - 6.5</span>', finance2: '<span style="color:var(--danger)">220+</span>',
                 insight3: '租约成本将彻底击穿 80 万总包的防线，如果勉强拿下背街巷尾的烂铺，则必无日漫量。属于绝对的高危资产。',
+                flowOffice: '45 处', flowResi: '3 处', flowInsight: '极其极致的写字楼单边潮汐，周末几无客流存在。',
+                compInsight: '楼宇物业费奇高，且禁止外摆、禁止明火。', compNeg: '商发垄断地段，需额外准备至少15万茶水费/转让费。',
                 reason: '<span class="highlight">[非入场理由阐述]：</span>租金杀手+红海绞肉机。80万不够交半年房租和天价转让费。这里的赛道只属于资本连锁玩家。'
             },
             'B': {
@@ -696,6 +698,8 @@
                 insight2: '<strong>截留效应剧烈</strong>：亲橙里内部铺位极其稀缺且租金惊人，外围底商面临商场巨头的全方位流量抽干。',
                 finance1: '<span style="color:var(--warning)">3.5 - 4.5</span>', finance2: '<span style="color:var(--warning)">160+</span>',
                 insight3: '由于极度依赖工作日商用流量，周末面临周边土著的流失。盈亏平衡点偏高，抗风险能力差。',
+                flowOffice: '21 处', flowResi: '12 处', flowInsight: '工作日阿里大军主导，周末有微弱的地缘客流补充，但总体依然呈大落差。',
+                compInsight: '园区门禁严格，外卖需设置专门交接点，影响履约效率。', compNeg: '有很强的排他商户协议存在，需核查该铺位是否允许做现磨咖啡。',
                 reason: '<span class="highlight">[非入场理由阐述]：</span>大厂的羊毛不好薅！内部极高配的饮食设施已干掉了一大批周边餐饮，租金泡沫极大。'
             },
             'C': {
@@ -717,6 +721,8 @@
                 insight2: '<strong>回避内侧死角商展</strong>：部分村民广场外围非市政底商虽便宜，但非动线必经地，切勿为了省那几千块误入“实体百慕大”。',
                 finance1: '<span style="color:var(--success)">1.8 - 2.5</span>', finance2: '<span style="color:var(--success)">80+</span>',
                 insight3: '租约成本被成功压制在了极度健康的15% 乃至更低。80万全砸在调性与设备上，半年回血不是梦。',
+                flowOffice: '2 处', flowResi: '38 处', flowInsight: '极致的地缘性平滑客流与大量周末微度假增量重叠，全天候均有出杯。',
+                compInsight: '涉及部分村内历史保护建筑或统一外观风貌管理，门头可能受限。', compNeg: '要求 2-3 个月的装修免租期十分合理，且可约定免收进场费。',
                 reason: '<span class="highlight">[核心破局理由阐述]：</span>极其正确的战略转移。用 80 万在此形成“降维打击”——换取极低的租售比与高溢价池！'
             }
         };
@@ -896,6 +902,12 @@
             document.getElementById('ui-finance1').innerHTML = data.finance1;
             document.getElementById('ui-finance2').innerHTML = data.finance2;
             document.getElementById('ui-insight3').innerHTML = data.insight3;
+
+            document.getElementById('ui-flow-office').innerHTML = data.flowOffice;
+            document.getElementById('ui-flow-resi').innerHTML = data.flowResi;
+            document.getElementById('ui-flow-insight').innerHTML = data.flowInsight;
+            document.getElementById('ui-comp-insight').innerHTML = data.compInsight;
+            document.getElementById('ui-comp-neg').innerHTML = data.compNeg;
         }
 
         function switchTab(tabId) {
