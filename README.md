@@ -101,11 +101,8 @@
 
 ### 🔌 安装与自动化注入
 
-如果你使用类似 OpenClaw 之类的智能终端，只需输入：
-\`\`\`bash
-/skill install ai-location-scout
-\`\`\`
-然后直接发给 Agent：
+
+直接发给 Agent：
 > **“我已经申请好高德相关的 Key 了，Web服务 Key 是 [xxx]，JSAPI Key 是 [yyy]，安全密钥是 [zzz]。请帮我配上去。”**
 
 Agent 会自动帮你绑定所有环境变量参数。
