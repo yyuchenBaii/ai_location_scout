@@ -1,11 +1,11 @@
 ---
 name: location-scout-ultimate
-description: Use for commercial site selection, multi-location comparison, district exploration, and reverse招商 workflows that must combine AMap-backed data, local Python scripts, and the bundled HTML report templates.
+description: Use for commercial site selection, multi-location comparison, district exploration, and reverse workflows that must combine AMap-backed data, local Python scripts, and the bundled HTML report templates.
 ---
 
 # Location Scout Ultimate
 
-Use this skill when the user wants a commercial real-estate style site-selection assessment, competitor scan, multi-location comparison, vague district exploration, or reverse招商 recommendation.
+Use this skill when the user wants a commercial real-estate style site-selection assessment, competitor scan, multi-location comparison, vague district exploration, or reverse recommendation.
 
 The value of this skill is not generic analysis. It is a strict workflow:
 
