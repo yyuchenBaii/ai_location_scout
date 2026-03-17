@@ -1,4 +1,4 @@
-<h1 align="center">🏪 AI Location Scout Ultimate</h1>
+<h1 align="center">🏪 商业选址排雷专家</h1>
 
 <p align="center">
   <strong>给你的 AI Agent 装上顶级商业地产分析大脑与高德真实数据引擎</strong>
