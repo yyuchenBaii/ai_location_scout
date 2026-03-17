@@ -5,7 +5,6 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License">
   <img src="https://img.shields.io/badge/OpenClaw-Supported-orange.svg?style=for-the-badge&logo=Robot&logoColor=white" alt="OpenClaw">
   <img src="https://img.shields.io/badge/Data-AMap_LBS-green.svg?style=for-the-badge" alt="AMap">
 </p>
@@ -122,6 +121,4 @@ Agent 会自动帮你绑定所有环境变量参数。
 
 **点亮右上角的 Star 🌟**
 
-## License
 
-[MIT](LICENSE)
